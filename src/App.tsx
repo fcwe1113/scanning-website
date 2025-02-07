@@ -12,6 +12,7 @@ import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
 import CircularIndeterminate from './Loading_screen';
 import { ScreenState } from './Screen_state';
+import { token_exchange } from './Token_exchange';
 
 function App() {
   const [count, setCount] = useState(0)
@@ -37,13 +38,6 @@ function App() {
       // messages sent from both ends should follow a similar format (at least for the first few chars)
       // *** denotes client side tasks
         // 0 = token exchange
-          // a. when the websocket channel opens the server will generate the token and send it to the client, the client would have a placeholder token which prevent the client from proceeding
-          // b. the client saves the token and pings back the same token to the server***
-          // c. the server sends an ack back if the token matches and switches the token_exchanged flag on and saves it in the list(tm)
-          // d. client then tells the server to move on to the start screen state***
-          // e. server tells client to move on then moves on itself, unless the token_exchanged flag is not on, in which case handle the error
-          // f. client moves on for real***
-          // while the client is waiting for the token exchange ack it can show a loading wheel or something idk
         // 1 = start screen
         // 2 = sign up screen
         // 3 = store locator
@@ -57,19 +51,7 @@ function App() {
       response = response.replace(oprand, "")
       switch (oprand) {
         case "0":
-          if (response == "ACK"){
-            socket.send("0NEXT") // 0d request next screen
-          } else if (response == "NEXT") {
-            screen = ScreenState.Start // 0f moving on
-            console.log("yes it worked")
-          } else if (response.length == 10) {
-            token = response // 0b save token
-            // console.log(token)
-            socket.send("0" + token) // 0b send it back
-          } else { // this will only happen if i fked up the backend
-            console.log(response)
-            console.error("wtf did i just receive")
-          }
+          token_exchange(socket, response, screen, token)
       }
     };
 
