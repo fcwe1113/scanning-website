@@ -20,14 +20,11 @@ function App() {
   let token = new String("-1")
   let screen: ScreenState = ScreenState.Loading // when printing we get the number
 
+  // for the camera lib use the one demoed in kybarg.github.io/react-qr-scanner/
+
   useEffect(() => {
     const socket = new WebSocket("ws://localhost:8080")
     socket.onopen = () => console.info("websocket connected")
-
-    // socket.addEventListener("open", event => {
-    //   console.log("hi")
-    //   socket.send(event)
-    // });
 
     // Listen for messages
     socket.onmessage = (evt) => {
@@ -39,6 +36,23 @@ function App() {
       // *** denotes client side tasks
         // 0 = token exchange
         // 1 = start screen
+        // a. check items: token
+          // b. do regular status checks until user either clicks log in sign up or proceed as guest***
+          // c. if user logs in client sends username and password in textbox***
+          // with the format "1username password"
+            // I. server querys db to get password of username
+            // II. server saves username locally and pings down OK if correct
+              // if db returns incorrect or empty pings down BADINFO and returns to step 1b.
+            // III. client saves the username locally and pings "1NEXT 3 token" to server***, server go to step 1f.
+          // d. if user clicks sign up client pings "1NEXT 2 token"***, server go to step 1f.
+          // e. if user clicks proceed as guest client pings "1guest 00000000" to server***
+            // I. server saves the username locally and pings "1ACK" to client
+            // II. client saves username locally and pings "1NEXT 3 token"***, server go to step 1f.
+          // f. server decipher the message, checks the token to be correct,
+          // and extract the destination screen status contained in it
+          // g. server pings "1NEXT *2/3*" depending on which one the client sent before
+          // and server moves on to that state
+          // h. client receives message and also moves on to the next state
         // 2 = sign up screen
         // 3 = store locator
         // 4 = main app (the scanning screen)
