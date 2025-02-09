@@ -40,7 +40,7 @@ function App() {
   // for the camera lib use the one demoed in kybarg.github.io/react-qr-scanner/
 
   useEffect(() => {
-    const socket = new WebSocket("ws://localhost:8080")
+    const socket = new WebSocket("wss://localhost:8080")
     socket.onopen = () => console.info("websocket connected")
 
     // Listen for messages
