@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, Component } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
-// import * as React from 'react';
+import KeyObject from 'node:crypto'
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
@@ -12,12 +12,19 @@ import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
 import CircularIndeterminate from './Loading_screen';
 import { ScreenState } from './Screen_state';
-import { token_exchange } from './Token_exchange';
+import { token_exchange, Loading } from './Token_exchange';
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  useNavigate,
+} from "react-router-dom";
+import Start from './Start'
 
 export class referenceObj {
   value: any = ScreenState.Loading;
 
-  constructor(value: any){
+  constructor(value: any) {
     this.value = value
   }
 }
@@ -30,21 +37,68 @@ const StartScreen = (
   </div></>
 )
 
-let changeScreen: referenceObj = new referenceObj(false)
+let changeScreeeen: referenceObj = new referenceObj(false)
 let screen: referenceObj = new referenceObj(ScreenState.Loading)
 let page: referenceObj = new referenceObj(CircularIndeterminate())
 let token = new String("-1")
+let nonce = new String("-1")
 
-function App() {
+// this block will block the rest of the code from running before it is done
+// i dont know how to async it yet so yea change it when i know how pls
+// let keypair = forge.pki.rsa.generateKeyPair({bits: 2048})
+let private_key: String | CryptoKey
+let public_key: string
+let key
+let server_public_key: referenceObj = new referenceObj("")
+let keyRdy: referenceObj = new referenceObj(false)
+let keyReceived: referenceObj = new referenceObj(true)
+var socket: WebSocket
+
+function App(): React.FC {
+
+  // const navigator = useNavigate()
 
   // for the camera lib use the one demoed in kybarg.github.io/react-qr-scanner/
 
+  
+
+  // only functions called in the router tags can use usenavigate()
+  // so make every function somehow part of the router chain
+  return (
+    <Router>
+      <InactivityLogout />
+      <BackendTalk /> {/* this means run whatever function name we put in < /> as a hook(special type of async function idk) */}
+      {/* <Navbar /> */}
+      <Routes>
+        <Route path="/scanning-website" element={<Loading />} />
+        {/* <Route path="/search" element={<Search />} />
+        <Route path="/signup" element={<SignUp />} /> */}
+        <Route path="/scanning-website/login" element={<Start />} />
+        {/* <Route path="/profile/:userId" element={<Profile />} /> */}
+        <Route
+        // path="/dashboard"
+        // element={
+        //   <PrivateRoute>
+        //     <Dashboard />
+        //   </PrivateRoute>
+        // }
+        />
+      </Routes>
+    </Router>
+  )
+
+}
+
+const BackendTalk = () => {
+  const navigator = useNavigate()
+
   useEffect(() => {
-    const socket = new WebSocket("wss://localhost:8080")
+
+    socket = new WebSocket("ws://localhost:8080/")
     socket.onopen = () => console.info("websocket connected")
 
     // Listen for messages
-    socket.onmessage = (evt) => {
+    socket.onmessage = async (evt) => {
       console.info("received \"" + evt.data + "\"")
 
       // first digit denotes client screen status
@@ -78,11 +132,15 @@ function App() {
       // 7 = after payment/logging out
 
       let response = evt.data
+
       let oprand = response.slice(0, 1)
       response = response.replace(oprand, "")
       switch (oprand) {
         case "0":
-          changeScreen.value = token_exchange(socket, response, screen, token)
+          
+          if (await token_exchange(socket, response, screen, token, nonce, navigator)){
+            navigator("/scanning-website/login")
+          }
           console.debug("screen state: " + screen.value)
       }
 
@@ -91,60 +149,57 @@ function App() {
       } else if (screen.value == ScreenState.Start) {
         page.value = StartScreen
       }
+
     };
-
-
-
-    // function send(socket: WebSocket, msg: String){
-    //   socket.addEventListener("open", event => {
-    //     console.log("hi")
-    //     socket.send(msg as string)
-    //   });
-    // }
-
-    // socket.addEventListener("open", event => {
-    //   // console.log("hi")
-    //   socket.send("1Connection established from "/*new Blob(["Connection established from " + id])*/)
-    // });
 
     return () => socket.close()
   }, [])
-
-  if (changeScreen.value) {
-    console.log("used screen: " + screen.value)
-    if (screen.value == ScreenState.Loading) {
-      page.value = CircularIndeterminate()
-    } else if (screen.value == ScreenState.Start) {
-      page.value = StartScreen
-    }
-    changeScreen.value = false
-    // return page.value
-  }
-
-  return(
-    <>
-    {page.value}
-    </>
-  )
-  
-
-  // return () => {
-  //   var page = (<><h1>dummy page</h1></>)
-  //   return useEffect(() => {
-  //     console.log("used screen: " + screen.value)
-  //     if (screen.value == ScreenState.Loading) {
-  //       page = CircularIndeterminate()
-  //     } else if (screen.value == ScreenState.Start) {
-  //       page = StartScreen
-  //     }
-  //   }, [screen.value])
-  //   return page
-  // }
-
-
 }
 
+const InactivityLogout = () => {
+  const navigate = useNavigate();
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
+  const startTimer = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
 
+    // Set timer to log out user after 5 minutes (300000 milliseconds) of inactivity
+    timerRef.current = setTimeout(() => {
+      console.log("User inactive for 5 minutes. Redirecting to login.");
+      navigate("/login"); // Redirect to login after inactivity
+    }, 300000);
+  };
+
+  const resetTimer = () => {
+    console.log("User activity detected. Resetting timer.");
+    startTimer();
+  };
+
+  useEffect(() => {
+    // Adding event listeners to reset timer
+    window.addEventListener("mousemove", resetTimer);
+    window.addEventListener("keypress", resetTimer);
+    window.addEventListener("click", resetTimer);
+
+    startTimer(); // Start the inactivity timer when the component mounts
+
+    return () => {
+      // Cleanup function to clear timer and remove event listeners
+      clearTimeout(timerRef.current!);
+      window.removeEventListener("mousemove", resetTimer);
+      window.removeEventListener("keypress", resetTimer);
+      window.removeEventListener("click", resetTimer);
+    };
+  }, [navigate]);
+
+  return null; // This component does not render anything
+};
+
+export function changeScreen(path: string){
+  const navigator = useNavigate()
+  navigator(path)
+}
 
 export default App
