@@ -40,8 +40,9 @@ const StartScreen = (
 let changeScreeeen: referenceObj = new referenceObj(false)
 let screen: referenceObj = new referenceObj(ScreenState.Loading)
 // let page: referenceObj = new referenceObj(CircularIndeterminate())
-let token = new String("-1")
-let nonce = new String("-1")
+let token = new referenceObj(new String("-1"))
+let nonce = new referenceObj(new String("-1"))
+let lastChecked = new Date()
 
 // this block will block the rest of the code from running before it is done
 // i dont know how to async it yet so yea change it when i know how pls
@@ -56,19 +57,15 @@ var socket: WebSocket
 
 function App() {
 
-  // const navigator = useNavigate()
-
   // for the camera lib use the one demoed in kybarg.github.io/react-qr-scanner/
 
-  
-
-  // only functions called in the router tags can use usenavigate()
-  // so make every function somehow part of the router chain
+  console.log(lastChecked)
   return (
     <>
     <Router>
       <InactivityLogout />
       <BackendTalk /> {/* this means run whatever function name we put in < /> as a hook(special type of async function idk) */}
+      <StatusCheck />
       {/* <Navbar /> */}
       <Routes>
         <Route path="/scanning-website" element={<Loading />} />
@@ -97,11 +94,11 @@ const BackendTalk = () => {
   useEffect(() => {
 
     socket = new WebSocket("ws://localhost:8080/")
-    socket.onopen = () => console.info("websocket connected")
+    socket.onopen = () => console.debug("websocket connected")
 
     // Listen for messages
     socket.onmessage = async (evt) => {
-      console.info("received \"" + evt.data + "\"")
+      console.debug("received \"" + evt.data + "\"")
 
       // first digit denotes client screen status
       // after reading the first digit get rid of it and pass the rest of the message into the relevant function
@@ -109,23 +106,23 @@ const BackendTalk = () => {
       // *** denotes client side tasks
       // 0 = token exchange
       // 1 = start screen
-      // a. check items: token
-      // b. do regular status checks until user either clicks log in sign up or proceed as guest***
-      // c. if user logs in client sends username and password in textbox***
-      // with the format "1username password"
-      // I. server querys db to get password of username
-      // II. server saves username locally and pings down OK if correct
-      // if db returns incorrect or empty pings down BADINFO and returns to step 1b.
-      // III. client saves the username locally and pings "1NEXT 3 token" to server***, server go to step 1f.
-      // d. if user clicks sign up client pings "1NEXT 2 token"***, server go to step 1f.
-      // e. if user clicks proceed as guest client pings "1guest 00000000" to server***
-      // I. server saves the username locally and pings "1ACK" to client
-      // II. client saves username locally and pings "1NEXT 3 token"***, server go to step 1f.
-      // f. server decipher the message, checks the token to be correct,
-      // and extract the destination screen status contained in it
-      // g. server pings "1NEXT *2/3*" depending on which one the client sent before
-      // and server moves on to that state
-      // h. client receives message and also moves on to the next state
+        // a. check items: token
+        // b. do regular status checks until user either clicks log in sign up or proceed as guest***
+        // c. if user logs in client sends username and password in textbox***
+          // with the format "1username password"
+          // I. server querys db to get password of username
+          // II. server saves username locally and pings down OK if correct
+          // if db returns incorrect or empty pings down BADINFO and returns to step 1b.
+          // III. client saves the username locally and pings "1NEXT 3 token" to server***, server go to step 1f.
+        // d. if user clicks sign up client pings "1NEXT 2 token"***, server go to step 1f.
+        // e. if user clicks proceed as guest client pings "1guest 00000000" to server***
+          // I. server saves the username locally and pings "1ACK" to client
+          // II. client saves username locally and pings "1NEXT 3 token"***, server go to step 1f.
+        // f. server decipher the message, checks the token to be correct,
+        // and extract the destination screen status contained in it
+        // g. server pings "1NEXT *2/3*" depending on which one the client sent before
+        // and server moves on to that state
+        // h. client receives message and also moves on to the next state
       // 2 = sign up screen
       // 3 = store locator
       // 4 = main app (the scanning screen)
@@ -159,6 +156,50 @@ const BackendTalk = () => {
   return null
 }
 
+const StatusCheck = () => {
+
+  // client sends a status check to the server every 2 minutes
+  // if the server does not receive a status check within 3 minutes of last check it will shut down the connection
+  // that 1 min leeway is to prevent high ping from disconnecting normal users
+  // the status check is done to prevent illegal data manip on client side
+
+  const timerRef = useRef<NodeJS.Timeout | null>(null)
+
+  const startTimer = () => {
+    console.debug("timer started")
+    if(timerRef.current){
+      clearTimeout(timerRef.current)
+    }
+
+    timerRef.current = setTimeout(() => {
+
+      // now I know that the socket is not *garunteed* garunteed to have made the connection at this point
+      // but if the client failed to make a connection after 2 minutes we have bigger problems
+
+      console.debug("status check o clock")
+
+      // normally i would split all the different status checks into their own file/function of the relevant screen
+      // but since we need to use the same timer so i dont want to make multiple timers just to status check
+      // so they are all aggregated here, which is fine as no reply from the server should be sent anyways so no need to handle that
+
+      if (screen.value = ScreenState.Start){
+        //start screen check items: token
+        socket.send(nonce.value + "1STATUS" + token.value)
+        startTimer()
+        console.debug("sent \"" + nonce.value + "1STATUS" + token.value)
+      }
+      
+    }, 120000) // set it to 2 mins later
+  }
+
+  useEffect(() => {
+
+    startTimer()
+  })
+
+  return null
+}
+
 const InactivityLogout = () => {
   const navigate = useNavigate();
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -171,7 +212,7 @@ const InactivityLogout = () => {
     // Set timer to log out user after 5 minutes (300000 milliseconds) of inactivity
     timerRef.current = setTimeout(() => {
       console.log("User inactive for 5 minutes. Redirecting to login.");
-      navigate("/login"); // Redirect to login after inactivity
+      // navigate("/login"); // Redirect to login after inactivity
     }, 300000);
   };
 
