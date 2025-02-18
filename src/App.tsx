@@ -39,22 +39,22 @@ const StartScreen = (
 
 let changeScreeeen: referenceObj = new referenceObj(false)
 let screen: referenceObj = new referenceObj(ScreenState.Loading)
-let page: referenceObj = new referenceObj(CircularIndeterminate())
+// let page: referenceObj = new referenceObj(CircularIndeterminate())
 let token = new String("-1")
 let nonce = new String("-1")
 
 // this block will block the rest of the code from running before it is done
 // i dont know how to async it yet so yea change it when i know how pls
 // let keypair = forge.pki.rsa.generateKeyPair({bits: 2048})
-let private_key: String | CryptoKey
-let public_key: string
-let key
-let server_public_key: referenceObj = new referenceObj("")
-let keyRdy: referenceObj = new referenceObj(false)
-let keyReceived: referenceObj = new referenceObj(true)
+// let private_key: String | CryptoKey
+// let public_key: string
+// let key
+// let server_public_key: referenceObj = new referenceObj("")
+// let keyRdy: referenceObj = new referenceObj(false)
+// let keyReceived: referenceObj = new referenceObj(true)
 var socket: WebSocket
 
-function App(): React.FC {
+function App() {
 
   // const navigator = useNavigate()
 
@@ -65,6 +65,7 @@ function App(): React.FC {
   // only functions called in the router tags can use usenavigate()
   // so make every function somehow part of the router chain
   return (
+    <>
     <Router>
       <InactivityLogout />
       <BackendTalk /> {/* this means run whatever function name we put in < /> as a hook(special type of async function idk) */}
@@ -85,6 +86,7 @@ function App(): React.FC {
         />
       </Routes>
     </Router>
+    </>
   )
 
 }
@@ -144,16 +146,17 @@ const BackendTalk = () => {
           console.debug("screen state: " + screen.value)
       }
 
-      if (screen.value == ScreenState.Loading) {
-        page.value = CircularIndeterminate()
-      } else if (screen.value == ScreenState.Start) {
-        page.value = StartScreen
-      }
+      // if (screen.value == ScreenState.Loading) {
+      //   page.value = CircularIndeterminate()
+      // } else if (screen.value == ScreenState.Start) {
+      //   page.value = StartScreen
+      // }
 
     };
 
     return () => socket.close()
   }, [])
+  return null
 }
 
 const InactivityLogout = () => {

@@ -26,12 +26,18 @@ const Start: React.FC = () => {
     //     }
     // };
 
+    // note that this page is just functional, and deffo not good looking yet, but ill fix that later bc css ptsd is a real issue and more ppl should talk abt it
     return (
-        <><h1>Welcome to the Scanning app</h1><input placeholder='username'></input><input placeholder='password'></input><div>
+        <>
+        <h1>Super Scanner</h1>
+        <input type="text" id="username_input" placeholder='username'></input>
+        <input type="text" id="password_input" placeholder='password'></input><br />
+        {/* <div id="button_div"> */}
             <button>Sign in</button><br />
             <button>Sign up</button><br />
             <button>Proceed as guest</button>
-        </div></>
+        {/* </div> */}
+        </>
     );
 };
 
