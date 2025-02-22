@@ -141,6 +141,11 @@ const BackendTalk = () => {
             navigator("/scanning-website/login")
           }
           console.debug("screen state: " + screen.value)
+        case "S":
+          if (response.slice(0,5) == "TATUS"){
+            nonce.value = response.replace("TATUS", "")
+            console.debug("new nonce rceived: " + nonce.value)
+          }
       }
 
       // if (screen.value == ScreenState.Loading) {
@@ -189,7 +194,7 @@ const StatusCheck = () => {
         console.debug("sent \"" + nonce.value + "1STATUS" + token.value)
       }
       
-    }, 120000) // set it to 2 mins later
+    }, 120000) // set it to 2 mins later (btw its in milliseconds)
   }
 
   useEffect(() => {
