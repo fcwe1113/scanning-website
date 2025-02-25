@@ -29,19 +29,11 @@ export class referenceObj {
   }
 }
 
-const StartScreen = (
-  <><h1>Welcome to the Scanning app</h1><input placeholder='username'></input><input placeholder='password'></input><div>
-    <button>Sign in</button><br />
-    <button>Sign up</button><br />
-    <button>Proceed as guest</button>
-  </div></>
-)
-
 let changeScreeeen: referenceObj = new referenceObj(false)
 let screen: referenceObj = new referenceObj(ScreenState.Loading)
 // let page: referenceObj = new referenceObj(CircularIndeterminate())
 let token = new referenceObj(new String("-1"))
-let nonce = new referenceObj(new String("-1"))
+export let nonce = new referenceObj(new String("-1"))
 let lastChecked = new Date()
 
 // this block will block the rest of the code from running before it is done
@@ -53,7 +45,7 @@ let lastChecked = new Date()
 // let server_public_key: referenceObj = new referenceObj("")
 // let keyRdy: referenceObj = new referenceObj(false)
 // let keyReceived: referenceObj = new referenceObj(true)
-var socket: WebSocket
+export var socket: WebSocket
 
 function App() {
 
