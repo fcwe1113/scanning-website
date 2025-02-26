@@ -19,7 +19,7 @@ import {
   Routes,
   useNavigate,
 } from "react-router-dom";
-import Start from './Start'
+import Start, { login_screen } from './Start'
 
 export class referenceObj {
   value: any = ScreenState.Loading;
@@ -35,6 +35,7 @@ let screen: referenceObj = new referenceObj(ScreenState.Loading)
 let token = new referenceObj(new String("-1"))
 export let nonce = new referenceObj(new String("-1"))
 let lastChecked = new Date()
+export let username = new referenceObj(new String("-1"))
 
 // this block will block the rest of the code from running before it is done
 // i dont know how to async it yet so yea change it when i know how pls
@@ -127,17 +128,23 @@ const BackendTalk = () => {
       let oprand = response.slice(0, 1)
       response = response.replace(oprand, "")
       switch (oprand) {
-        case "0":
-          
-          if (await token_exchange(socket, response, screen, token, nonce, navigator)){
-            navigator("/scanning-website/login")
-          }
-          console.debug("screen state: " + screen.value)
         case "S":
           if (response.slice(0,5) == "TATUS"){
             nonce.value = response.replace("TATUS", "")
             console.debug("new nonce rceived: " + nonce.value)
           }
+
+        case "0":
+          
+          if (await token_exchange(socket, response, screen, token, nonce)){
+            navigator("/scanning-website/login")
+          }
+          console.debug("screen state: " + screen.value)
+
+        case "1":
+
+          let dest = login_screen(socket, response, screen, nonce)
+
       }
 
       // if (screen.value == ScreenState.Loading) {

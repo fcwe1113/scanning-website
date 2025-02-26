@@ -28,7 +28,6 @@ export async function token_exchange(
     screen: referenceObj,
     token: referenceObj,
     nonce: referenceObj,
-    navigator: NavigateFunction,
 ): Promise<boolean>{
     
     // if (!keySent) {

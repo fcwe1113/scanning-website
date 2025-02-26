@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { nonce, socket } from "./App";
+import { nonce, referenceObj, socket, username } from "./App";
+import { ScreenState } from "./Screen_state";
 // import { login } from "../services/UserApi";
 
 const Start: React.FC = () => {
@@ -43,20 +44,42 @@ const Start: React.FC = () => {
 };
 
 function Login(){
-    const username = document.getElementById("username_input").value
+    const usernamee = document.getElementById("username_input").value
     const password = document.getElementById("password_input").value
 
     // do some input sanitising before passing along the inputs
     // add more here later if needed
-    if(username.length > 0){
+    if(usernamee.length > 0){
         if(password.length > 0){
-            socket.send(nonce.value + "1LOGIN" + username + " " + password)
-            console.debug("sent: " + nonce.value + "1LOGIN" + username + " " + password)
+            socket.send(nonce.value + "1LOGIN" + usernamee + " " + password)
+            console.debug("sent: " + nonce.value + "1LOGIN" + usernamee + " " + password)
+            username.value = usernamee
         } else {
             alert("please type in a password")
         }    
     } else {
         alert("please type in a username")
+    }
+}
+
+export function login_screen(socket: WebSocket, response: String, screen: referenceObj, nonce: referenceObj){
+    // message handler for login screen
+    if(response == "FAIL"){ // backend sends this back if either/both username and password is wrong
+        alert("Incorrect username or password")
+        return ""
+    } else if(response == "OK"){ // if backsend sends this back that means the login was accepted
+        socket.send(nonce.value + "1NEXT3") // this tells the backend we are moving onto the store locator
+        return ""
+    } else if(response.slice(0, 4) == "NEXT"){
+        if(response.slice(4, 5) == "2"){
+            screen.value = ScreenState.SignUp
+            console.debug("move to account creation")
+            return "2"
+        } else if(response.slice(4, 5) == "3"){
+            screen.value = ScreenState.StoreLocator
+            console.debug("move to store locator")
+            return "3"
+        }
     }
 }
 
