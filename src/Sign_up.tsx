@@ -3,7 +3,7 @@ import { nonce, referenceObj, socket, username } from "./App";
 import { ScreenState } from "./Screen_state";
 // import { login } from "../services/UserApi";
 
-const Start: React.FC = () => {
+const SignUp: React.FC = () => {
 
     // note that this page is just functional, and deffo not good looking yet, but ill fix that later bc css ptsd is a real issue and more ppl should talk abt it
     return (
@@ -11,36 +11,29 @@ const Start: React.FC = () => {
         <h1>Super Scanner</h1>
         <input type="text" id="username_input" placeholder='username'></input>
         <input type="password" id="password_input" placeholder='password'></input><br />
+        <input type="password" id="password_confirm" placeholder='confirm password'></input><br />
+        <input type="text" id="first_name_input" placeholder='first name'></input><br />
+        <input type="text" id="last_name_input" placeholder='last name'></input><br />
+        <input type="text" id="dob_input" placeholder='dob'></input><br />
+        <input type="text" id="email_input" placeholder='email'></input><br />
+        <input type="text" id="email_confirm" placeholder='confirm email'></input><br />
         {/* <div id="button_div"> */}
-            <button onClick={() => Login()}>Sign in</button><br />
-            <button onClick={() => SignUp()}>Sign up</button><br />
-            <button>Proceed as guest</button>
+            <button onClick={() => SignUpForm()}>Sign up</button><br />
+            <button>Cancel</button><br />
         {/* </div> */}
         </>
     );
 };
 
-function Login(){
+function SignUpForm(){
     const usernamee = document.getElementById("username_input").value
     const password = document.getElementById("password_input").value
 
-    // do some input sanitising before passing along the inputs
-    // add more here later if needed
-    if(usernamee.length > 0){
-        if(password.length > 0){
-            socket.send(nonce.value + "1LOGIN" + usernamee + " " + password)
-            console.debug("sent: " + nonce.value + "1LOGIN" + usernamee + " " + password)
-            username.value = usernamee
-        } else {
-            alert("please type in a password")
-        }    
-    } else {
-        alert("please type in a username")
-    }
+    
 }
 
-export function login_screen(socket: WebSocket, response: String, screen: referenceObj, nonce: referenceObj){
-    // message handler for login screen
+export function sign_up_screen(socket: WebSocket, response: String, screen: referenceObj, nonce: referenceObj){
+    // message handler for sign up screen
     if(response == "FAIL"){ // backend sends this back if either/both username and password is wrong
         alert("Incorrect username or password")
         return ""
@@ -60,8 +53,4 @@ export function login_screen(socket: WebSocket, response: String, screen: refere
     }
 }
 
-function SignUp(){
-    socket.send(nonce.value + "1NEXT2")
-}
-
-export default Start;
+export default SignUp;

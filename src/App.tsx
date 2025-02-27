@@ -20,6 +20,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 import Start, { login_screen } from './Start'
+import SignUp from './Sign_up'
 
 export class referenceObj {
   value: any = ScreenState.Loading;
@@ -36,6 +37,7 @@ let token = new referenceObj(new String("-1"))
 export let nonce = new referenceObj(new String("-1"))
 let lastChecked = new Date()
 export let username = new referenceObj(new String("-1"))
+const StatusCheckInterval = 2000 // set it to 2 mins later (btw its in milliseconds)
 
 // this block will block the rest of the code from running before it is done
 // i dont know how to async it yet so yea change it when i know how pls
@@ -55,27 +57,27 @@ function App() {
   console.log(lastChecked)
   return (
     <>
-    <Router>
-      <InactivityLogout />
-      <BackendTalk /> {/* this means run whatever function name we put in < /> as a hook(special type of async function idk) */}
-      <StatusCheck />
-      {/* <Navbar /> */}
-      <Routes>
-        <Route path="/scanning-website" element={<Loading />} />
-        {/* <Route path="/search" element={<Search />} />
-        <Route path="/signup" element={<SignUp />} /> */}
-        <Route path="/scanning-website/login" element={<Start />} />
-        {/* <Route path="/profile/:userId" element={<Profile />} /> */}
-        <Route
-        // path="/dashboard"
-        // element={
-        //   <PrivateRoute>
-        //     <Dashboard />
-        //   </PrivateRoute>
-        // }
-        />
-      </Routes>
-    </Router>
+      <Router>
+        <InactivityLogout />
+        <BackendTalk /> {/* this means run whatever function name we put in < /> as a hook(special type of async function idk) */}
+        <StatusCheck />
+        {/* <Navbar /> */}
+        <Routes>
+          <Route path="/scanning-website" element={<Loading />} />
+          {/* <Route path="/scanning-website/locatestore" element={<LocateStore />} /> */}
+          <Route path="/scanning-website/signup" element={<SignUp />} />
+          <Route path="/scanning-website/login" element={<Start />} />
+          {/* <Route path="/profile/:userId" element={<Profile />} /> */}
+          <Route
+          // path="/dashboard"
+          // element={
+          //   <PrivateRoute>
+          //     <Dashboard />
+          //   </PrivateRoute>
+          // }
+          />
+        </Routes>
+      </Router>
     </>
   )
 
@@ -99,23 +101,23 @@ const BackendTalk = () => {
       // *** denotes client side tasks
       // 0 = token exchange
       // 1 = start screen
-        // a. check items: token
-        // b. do regular status checks until user either clicks log in sign up or proceed as guest***
-        // c. if user logs in client sends username and password in textbox***
-          // with the format "1username password"
-          // I. server querys db to get password of username
-          // II. server saves username locally and pings down OK if correct
-          // if db returns incorrect or empty pings down BADINFO and returns to step 1b.
-          // III. client saves the username locally and pings "1NEXT 3 token" to server***, server go to step 1f.
-        // d. if user clicks sign up client pings "1NEXT 2 token"***, server go to step 1f.
-        // e. if user clicks proceed as guest client pings "1guest 00000000" to server***
-          // I. server saves the username locally and pings "1ACK" to client
-          // II. client saves username locally and pings "1NEXT 3 token"***, server go to step 1f.
-        // f. server decipher the message, checks the token to be correct,
-        // and extract the destination screen status contained in it
-        // g. server pings "1NEXT *2/3*" depending on which one the client sent before
-        // and server moves on to that state
-        // h. client receives message and also moves on to the next state
+      // a. check items: token
+      // b. do regular status checks until user either clicks log in sign up or proceed as guest***
+      // c. if user logs in client sends username and password in textbox***
+      // with the format "1username password"
+      // I. server querys db to get password of username
+      // II. server saves username locally and pings down OK if correct
+      // if db returns incorrect or empty pings down BADINFO and returns to step 1b.
+      // III. client saves the username locally and pings "1NEXT 3 token" to server***, server go to step 1f.
+      // d. if user clicks sign up client pings "1NEXT 2 token"***, server go to step 1f.
+      // e. if user clicks proceed as guest client pings "1guest 00000000" to server***
+      // I. server saves the username locally and pings "1ACK" to client
+      // II. client saves username locally and pings "1NEXT 3 token"***, server go to step 1f.
+      // f. server decipher the message, checks the token to be correct,
+      // and extract the destination screen status contained in it
+      // g. server pings "1NEXT *2/3*" depending on which one the client sent before
+      // and server moves on to that state
+      // h. client receives message and also moves on to the next state
       // 2 = sign up screen
       // 3 = store locator
       // 4 = main app (the scanning screen)
@@ -129,21 +131,29 @@ const BackendTalk = () => {
       response = response.replace(oprand, "")
       switch (oprand) {
         case "S":
-          if (response.slice(0,5) == "TATUS"){
+          if (response.slice(0, 5) == "TATUS") {
             nonce.value = response.replace("TATUS", "")
             console.debug("new nonce rceived: " + nonce.value)
           }
+          break
 
         case "0":
-          
-          if (await token_exchange(socket, response, screen, token, nonce)){
+
+          if (await token_exchange(socket, response, screen, token, nonce)) {
             navigator("/scanning-website/login")
           }
           console.debug("screen state: " + screen.value)
+          break
 
         case "1":
 
           let dest = login_screen(socket, response, screen, nonce)
+          if (dest == "2") {
+            navigator("/scanning-website/signup")
+          } else if (dest == "3") {
+            navigator("/scanning-website/locatestore")
+          }
+          break
 
       }
 
@@ -171,7 +181,7 @@ const StatusCheck = () => {
 
   const startTimer = () => {
     console.debug("timer started")
-    if(timerRef.current){
+    if (timerRef.current) {
       clearTimeout(timerRef.current)
     }
 
@@ -186,14 +196,15 @@ const StatusCheck = () => {
       // but since we need to use the same timer so i dont want to make multiple timers just to status check
       // so they are all aggregated here, which is fine as no reply from the server should be sent anyways so no need to handle that
 
-      if (screen.value = ScreenState.Start){
+      if (screen.value == ScreenState.Start || screen.value == ScreenState.SignUp) {
         //start screen check items: token
-        socket.send(nonce.value + "1STATUS" + token.value)
+        let screenID = screen.value == ScreenState.Start ? "1" : "2"
+        socket.send(nonce.value + screenID + "STATUS" + token.value)
         startTimer()
-        console.debug("sent \"" + nonce.value + "1STATUS" + token.value)
+        console.debug("sent \"" + nonce.value + screenID + "STATUS" + token.value)
       }
-      
-    }, 120000) // set it to 2 mins later (btw its in milliseconds)
+
+    }, StatusCheckInterval)
   }
 
   useEffect(() => {
@@ -245,7 +256,7 @@ const InactivityLogout = () => {
   return null; // This component does not render anything
 };
 
-export function changeScreen(path: string){
+export function changeScreen(path: string) {
   const navigator = useNavigate()
   navigator(path)
 }
