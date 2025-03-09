@@ -1,16 +1,5 @@
-import { useState, useEffect, useRef, Component } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useEffect, useRef } from 'react'
 import './App.css'
-import KeyObject from 'node:crypto'
-import AppBar from '@mui/material/AppBar';
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-import IconButton from '@mui/material/IconButton';
-import MenuIcon from '@mui/icons-material/Menu';
-import CircularIndeterminate from './Loading_screen';
 import { ScreenState } from './Screen_state';
 import { token_exchange, Loading } from './Token_exchange';
 import {
@@ -20,7 +9,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 import Start, { login_screen } from './Start'
-import SignUp from './Sign_up'
+import SignUp, { sign_up_screen } from './Sign_up'
 
 export class referenceObj {
   value: any = ScreenState.Loading;
@@ -30,14 +19,15 @@ export class referenceObj {
   }
 }
 
-let changeScreeeen: referenceObj = new referenceObj(false)
 let screen: referenceObj = new referenceObj(ScreenState.Loading)
 // let page: referenceObj = new referenceObj(CircularIndeterminate())
 let token = new referenceObj(new String("-1"))
 export let nonce = new referenceObj(new String("-1"))
 let lastChecked = new Date()
 export let username = new referenceObj(new String("-1"))
-const StatusCheckInterval = 2000 // set it to 2 mins later (btw its in milliseconds)
+const StatusCheckInterval = 120000 // set it to 2 mins later (btw its in milliseconds)
+const useCloud = false
+const BackendLink = useCloud ? "wss://efrgtghyujhygrewds.ip-ddns.com:8080/" : "ws://localhost:8080/" // change the ip accordingly
 
 // this block will block the rest of the code from running before it is done
 // i dont know how to async it yet so yea change it when i know how pls
@@ -88,7 +78,7 @@ const BackendTalk = () => {
 
   useEffect(() => {
 
-    socket = new WebSocket("ws://localhost:8080/")
+    socket = new WebSocket(BackendLink)
     socket.onopen = () => console.debug("websocket connected")
 
     // Listen for messages
@@ -129,6 +119,7 @@ const BackendTalk = () => {
 
       let oprand = response.slice(0, 1)
       response = response.replace(oprand, "")
+      let dest: string | undefined
       switch (oprand) {
         case "S":
           if (response.slice(0, 5) == "TATUS") {
@@ -147,13 +138,22 @@ const BackendTalk = () => {
 
         case "1":
 
-          let dest = login_screen(socket, response, screen, nonce)
+          dest = login_screen(socket, response, screen, nonce)
           if (dest == "2") {
             navigator("/scanning-website/signup")
           } else if (dest == "3") {
             navigator("/scanning-website/locatestore")
           }
           break
+        case "2":
+
+          dest = sign_up_screen(socket, response, screen, nonce)
+            if (dest == "1") {
+              navigator("/scanning-website/login")
+            } else if (dest == "3") {
+              navigator("/scanning-website/locatestore")
+            }
+            break
 
       }
 

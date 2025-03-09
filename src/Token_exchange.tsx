@@ -1,5 +1,4 @@
-import { Navigate, NavigateFunction, useNavigate } from "react-router-dom"
-import { changeScreen, referenceObj } from "./App"
+import { referenceObj } from "./App"
 import { ScreenState } from "./Screen_state"
 import CircularIndeterminate from "./Loading_screen"
 
@@ -19,7 +18,6 @@ import CircularIndeterminate from "./Loading_screen"
 // while the client is waiting for the token exchange ack it can show a loading wheel or something idk
 
 
-let keySent = false
 
 // as all parameters passed in are objects (except public_key) they are all passed by reference
 export async function token_exchange(

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React from "react";
 import { nonce, referenceObj, socket, username } from "./App";
 import { ScreenState } from "./Screen_state";
 // import { login } from "../services/UserApi";
@@ -21,8 +21,9 @@ const Start: React.FC = () => {
 };
 
 function Login(){
-    const usernamee = document.getElementById("username_input").value
-    const password = document.getElementById("password_input").value
+
+    const usernamee = (document.getElementById("username_input") as HTMLInputElement).value
+    const password = (document.getElementById("password_input") as HTMLInputElement).value
 
     // do some input sanitising before passing along the inputs
     // add more here later if needed
