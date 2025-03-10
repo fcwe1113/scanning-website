@@ -3,6 +3,25 @@ import { nonce, referenceObj, socket, username } from "./App";
 import { ScreenState } from "./Screen_state";
 // import { login } from "../services/UserApi";
 
+// 1 = start screen
+        // a. check items: token
+        // b. do regular status checks until user either clicks log in sign up or proceed as guest***
+        // c. if user logs in client sends username and password in textbox***
+        // with the format "1username password"
+            // I. server querys db to get password of username
+            // II. server saves username locally and pings down OK if correct
+            // if db returns incorrect or empty pings down FAIL and returns to step 1b.
+            // III. client saves the username locally and pings "1NEXT3" to server***, server go to step 1f.
+        // d. if user clicks sign up client pings "1NEXT2"***, server go to step 1f.
+        // e. if user clicks proceed as guest client pings "1guest 00000000" to server***
+            // I. server saves the username locally and pings "1ACK" to client
+            // II. client saves username locally and pings "1NEXT 3 token"***, server go to step 1f.
+        // f. server decipher the message, checks the token to be correct,
+        // and extract the destination screen status contained in it
+        // g. server pings "1NEXT *2/3*" depending on which one the client sent before
+        // and server moves on to that state
+        // h. client receives message and also moves on to the next state
+
 const Start: React.FC = () => {
 
     // note that this page is just functional, and deffo not good looking yet, but ill fix that later bc css ptsd is a real issue and more ppl should talk abt it
@@ -46,7 +65,7 @@ export function login_screen(socket: WebSocket, response: String, screen: refere
         alert("Incorrect username or password")
         return ""
     } else if(response == "OK"){ // if backsend sends this back that means the login was accepted
-        socket.send(nonce.value + "1NEXT3") // this tells the backend we are moving onto the store locator
+        socket.send(nonce.value + "1NEXT3" + (document.getElementById("username_input") as HTMLInputElement).value) // this tells the backend we are moving onto the store locator
         return ""
     } else if(response.slice(0, 4) == "NEXT"){
         if(response.slice(4, 5) == "2"){

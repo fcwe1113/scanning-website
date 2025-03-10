@@ -3,12 +3,40 @@ import { nonce, referenceObj, socket } from "./App";
 import { ScreenState } from "./Screen_state";
 // import { login } from "../services/UserApi";
 
+    // 2 = sign up screen
+        // a. check items: token
+        // b. do regular status checks until user either clicks log in sign up or proceed as guest***
+        // c. if user enters all relevant info and client sanitises input***
+        // d. client then sends username to backend to check for clashes***
+        // with the format "2CHECK[JSON of the entire sign up form]"
+        // e. server does another sanitize check
+            // I. if there are errors then the list of error messages would be sent down prepended with "2BADFORM"
+        // f. server run the username with db and a list of usernames being signed up
+            // I. if no clashes from both, send "2NAMEOK" and put the name in the list
+            // server should also send the verification email with the generated token (that is going to be ABCDEF) but nahhhhhhhhhhh
+            // II. if a clash is found send "2BADNAME" and restart the process
+        // g. client then does the email verification* and send back "2EMAILverify_token"***
+            // i have a feeling that the token would be ABCDEF but idk
+            // I. if the token is incorrect send "2BADEMAIL"
+        // h. server runs the sql command to insert a new row containing all the given information, and send "2OK" after its done
+        // i. move on to the store locator
+
+let email_verify: boolean = false
+let username: string = ""
+
 const SignUp: React.FC = () => {
 
     // note that this page is just functional, and deffo not good looking yet, but ill fix that later bc css ptsd is a real issue and more ppl should talk abt it
     return (
+        <EmailCheck email_verify={email_verify}/>
+    );
+};
+
+function EmailCheck({email_verify} : any){
+    return !email_verify ? (
         <>
-        <h1>Super Scanner</h1>
+        
+        <h1>Sign Up</h1>
         <input type="text" id="username_input" placeholder='username'></input> {/* must be unique and without spaces, check with db to check clashes */}
         <input type="password" id="password_input" placeholder='password'></input><br /> {/* minimum 8 long, must include both cap non cap and numbers */}
         <input type="password" id="password_confirm" placeholder='confirm password'></input><br />
@@ -18,12 +46,25 @@ const SignUp: React.FC = () => {
         <input type="text" id="email_input" placeholder='email'></input><br /> {/* must contain @, will receive a "registration email" with a code to check validity */}
         <input type="text" id="email_confirm" placeholder='confirm email'></input><br />
         {/* <div id="button_div"> */}
-            <button onClick={() => SignUpForm()}>Sign up</button><br />
-            <button onClick={() => Cancel()}>Cancel</button><br />
+        <button onClick={() => SignUpForm()}>Sign up</button><br />
+        <button onClick={() => Cancel()}>Cancel</button><br />
         {/* </div> */}
         </>
-    );
-};
+    ) : (
+        <>
+        <h2>Please verify your email by typing in the verification codes sent to your email</h2>
+        <h2>Oh no I spilled the code its ABCDEF what am I gonna doooooooo</h2>
+        <input type="text" id="code_input" placeholder='verification code'></input><br/>
+        <button onClick={() => Verify()}>Verify</button>
+
+        </>
+    )
+    
+}
+
+function Verify(){
+    socket.send("2EMAIL" + (document.getElementById("code_input") as HTMLInputElement).value)
+}
 
 function SignUpForm(){
 
@@ -111,8 +152,9 @@ function SignUpForm(){
         email: email_input,
     }
 
-    socket.send(nonce.value + "2CHECK " + JSON.stringify(jsonpayload))
+    socket.send(nonce.value + "2CHECK" + JSON.stringify(jsonpayload))
     console.debug("sent sign up JSON")
+    username = username_input
     
 }
 
@@ -125,10 +167,14 @@ export function sign_up_screen(socket: WebSocket, response: String, screen: refe
     if(response == "BADNAME"){ // backend sends this back if either/both username and password is wrong
         alert("username in use") // todo
         return ""
+    } else if (response.slice(0, 7) == "BADFORM") {
+        alert(response.replace("BADFORM ", ""))
+        return ""
     } else if (response == "NAMEOK") {
-        // do stuff if name is usable
+        email_verify = true // try and make this flag work
+
     } else if(response == "OK"){ // if backsend sends this back that means the login was accepted
-        socket.send(nonce.value + "2NEXT3") // this tells the backend we are moving onto the store locator
+        socket.send(nonce.value + "2NEXT3" + username) // this tells the backend we are moving onto the store locator
         return ""
     } else if(response.slice(0, 4) == "NEXT"){
         if(response.slice(4, 5) == "1"){
