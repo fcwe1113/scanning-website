@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { nonce, referenceObj, socket } from "./App";
 import { ScreenState } from "./Screen_state";
 // import { login } from "../services/UserApi";
@@ -21,21 +21,20 @@ import { ScreenState } from "./Screen_state";
         // h. server runs the sql command to insert a new row containing all the given information, and send "2OK" after its done
         // i. move on to the store locator
 
-let email_verify: boolean = false
+// let email_verify: boolean = false
 let username: string = ""
+let globalSetEmailVerify: React.Dispatch<React.SetStateAction<boolean>>
 
 const SignUp: React.FC = () => {
+    const [EmailVerify, setEmailVerify] = useState(false)
+    useEffect(() => {
+        setEmailVerify(EmailVerify)
+    }, [EmailVerify])
+    globalSetEmailVerify = setEmailVerify // pass the function out into global
 
     // note that this page is just functional, and deffo not good looking yet, but ill fix that later bc css ptsd is a real issue and more ppl should talk abt it
-    return (
-        <EmailCheck email_verify={email_verify}/>
-    );
-};
-
-function EmailCheck({email_verify} : any){
-    return !email_verify ? (
+    return !EmailVerify ? (
         <>
-        
         <h1>Sign Up</h1>
         <input type="text" id="username_input" placeholder='username'></input> {/* must be unique and without spaces, check with db to check clashes */}
         <input type="password" id="password_input" placeholder='password'></input><br /> {/* minimum 8 long, must include both cap non cap and numbers */}
@@ -59,11 +58,10 @@ function EmailCheck({email_verify} : any){
 
         </>
     )
-    
-}
+};
 
 function Verify(){
-    socket.send("2EMAIL" + (document.getElementById("code_input") as HTMLInputElement).value)
+    socket.send(nonce.value + "2EMAIL" + (document.getElementById("code_input") as HTMLInputElement).value)
 }
 
 function SignUpForm(){
@@ -151,6 +149,7 @@ function SignUpForm(){
         dob: dob_input,
         email: email_input,
     }
+    console.debug(JSON.stringify(jsonpayload))
 
     socket.send(nonce.value + "2CHECK" + JSON.stringify(jsonpayload))
     console.debug("sent sign up JSON")
@@ -171,7 +170,8 @@ export function sign_up_screen(socket: WebSocket, response: String, screen: refe
         alert(response.replace("BADFORM ", ""))
         return ""
     } else if (response == "NAMEOK") {
-        email_verify = true // try and make this flag work
+        // email_verify = true // try and make this flag work
+        globalSetEmailVerify(true)
 
     } else if(response == "OK"){ // if backsend sends this back that means the login was accepted
         socket.send(nonce.value + "2NEXT3" + username) // this tells the backend we are moving onto the store locator
