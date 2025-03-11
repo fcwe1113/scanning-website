@@ -20,13 +20,13 @@ import CircularIndeterminate from "./Loading_screen"
 
 
 // as all parameters passed in are objects (except public_key) they are all passed by reference
-export async function token_exchange(
+export const token_exchange = async (
     socket: WebSocket,
-    response: String,
+    response: string,
     screen: referenceObj,
     token: referenceObj,
     nonce: referenceObj,
-): Promise<boolean>{
+): Promise<boolean> => {
     /*} else*/ if (response == "NEXT") {
         // console.log("b4: " + screen)
         screen.value = ScreenState.Start // 0i moving on
@@ -49,7 +49,7 @@ export async function token_exchange(
         console.error("wtf did i just receive")
         return false
     }
-}
+};
 
 export const Loading: React.FC = () => {
     return (CircularIndeterminate())

@@ -27,10 +27,11 @@ const Start: React.FC = () => {
     // note that this page is just functional, and deffo not good looking yet, but ill fix that later bc css ptsd is a real issue and more ppl should talk abt it
     return (
         <>
-        <h1>Super Scanner</h1>
-        <input type="text" id="username_input" placeholder='username'></input>
-        <input type="password" id="password_input" placeholder='password'></input><br />
-        {/* <div id="button_div"> */}
+            <h1>Super Scanner</h1><br/>
+            <p>3</p>
+            <input type="text" id="username_input" placeholder='username'></input>
+            <input type="password" id="password_input" placeholder='password'></input><br />
+            {/* <div id="button_div"> */}
             <button onClick={() => Login()}>Sign in</button><br />
             <button onClick={() => SignUp()}>Sign up</button><br />
             <button onClick={() => socket.send(nonce.value + "1GUEST")}>Proceed as guest</button>
@@ -59,7 +60,7 @@ function Login(){
     }
 }
 
-export function login_screen(socket: WebSocket, response: String, screen: referenceObj, nonce: referenceObj){
+export function login_screen(socket: WebSocket, response: string, screen: referenceObj, nonce: referenceObj){
     // message handler for login screen
     if(response == "FAIL"){ // backend sends this back if either/both username and password is wrong
         alert("Incorrect username or password")

@@ -10,36 +10,34 @@ import {
 } from "react-router-dom";
 import Start, { login_screen } from './Start'
 import SignUp, { sign_up_screen } from './Sign_up'
-import LocateStore from './Locate_store';
+import LocateStore, {store_locator_screen} from './Locate_store';
 
 export class referenceObj {
-  value: any = ScreenState.Loading;
+  value: unknown
 
-  constructor(value: any) {
+  constructor(value: unknown) {
     this.value = value
   }
 }
 
-let screen: referenceObj = new referenceObj(ScreenState.Loading)
+const screen: referenceObj = new referenceObj(ScreenState.Loading)
 // let page: referenceObj = new referenceObj(CircularIndeterminate())
-let token = new referenceObj(new String("-1"))
-export let nonce = new referenceObj(new String("-1"))
-let lastChecked = new Date()
-export let username = new referenceObj(new String("-1"))
+const token = new referenceObj(String("-1"))
+export const nonce = new referenceObj(String("-1"))
+const lastChecked = new Date()
+export const username = new referenceObj(String("-1"))
 const StatusCheckInterval = 120000 // set it to 2 mins later (btw its in milliseconds)
 const useCloud = true
 const BackendLink = useCloud ? "wss://efrgtghyujhygrewds.ip-ddns.com:8080/" : "ws://localhost:8080/" // change the ip accordingly
+export let socket: WebSocket
 
-// this block will block the rest of the code from running before it is done
-// i dont know how to async it yet so yea change it when i know how pls
-// let keypair = forge.pki.rsa.generateKeyPair({bits: 2048})
-// let private_key: String | CryptoKey
-// let public_key: string
-// let key
-// let server_public_key: referenceObj = new referenceObj("")
-// let keyRdy: referenceObj = new referenceObj(false)
-// let keyReceived: referenceObj = new referenceObj(true)
-export var socket: WebSocket
+export function getWindowDimensions() {
+  const { innerWidth: width, innerHeight: height } = window;
+  return {
+    width,
+    height
+  };
+}
 
 function App() {
 
@@ -101,9 +99,8 @@ const BackendTalk = () => {
 
       let response = evt.data
 
-      let oprand = response.slice(0, 1)
+      const oprand = response.slice(0, 1)
       response = response.replace(oprand, "")
-      let dest: string | undefined
       switch (oprand) {
         case "S":
           if (response.slice(0, 5) == "TATUS") {
@@ -121,23 +118,33 @@ const BackendTalk = () => {
 
         case "1":
 
-          dest = login_screen(socket, response, screen, nonce)
-          if (dest == "2") {
-            navigator("/scanning-website/signup")
-          } else if (dest == "3") {
-            navigator("/scanning-website/locatestore")
+          switch (login_screen(socket, response, screen, nonce)) {
+            case "2":
+              navigator("/scanning-website/signup")
+              break
+            case "3":
+              navigator("/scanning-website/locatestore")
+              break
           }
           break
         case "2":
-
-          dest = sign_up_screen(socket, response, screen, nonce)
-            if (dest == "1") {
+          switch (sign_up_screen(socket, response, screen, nonce)) {
+            case "1":
               navigator("/scanning-website/login")
-            } else if (dest == "3") {
+              break
+            case "3":
               navigator("/scanning-website/locatestore")
-            }
-            break
+              break
+          }
+          break
 
+        case "3":
+          switch (store_locator_screen(socket, response, /*screen, */nonce)) {
+            case "4":
+              // switch to main app
+              break
+          }
+          break
       }
 
       // if (screen.value == ScreenState.Loading) {
@@ -183,9 +190,14 @@ const StatusCheck = () => {
       if (screen.value == ScreenState.Start || screen.value == ScreenState.SignUp) { // 2b.
         //start screen check items: token
         socket.send(nonce.value + (screen.value == ScreenState.Start ? "1" : "2") + "STATUS" + token.value)
-        startTimer()
         console.debug("sent \"" + nonce.value + (screen.value == ScreenState.Start ? "1" : "2") + "STATUS" + token.value)
+
+      } else if (screen.value == ScreenState.StoreLocator) {
+        socket.send(nonce.value + "3STATUS" + token.value + username.value)
+        console.debug("sent \"" + nonce.value + "3STATUS" + token.value + username.value)
       }
+
+      startTimer()
 
     }, StatusCheckInterval)
   }

@@ -72,7 +72,7 @@ function SignUpForm(){
         return
     }
 
-    let jsonpayload = {
+    const jsonPayload = {
         username: username_input,
         password: password_input,
         first_name: (document.getElementById("first_name_input") as HTMLInputElement).value,
@@ -80,9 +80,9 @@ function SignUpForm(){
         dob: dob_input,
         email: email_input,
     }
-    console.debug(JSON.stringify(jsonpayload))
+    console.debug(JSON.stringify(jsonPayload))
 
-    socket.send(nonce.value + "2CHECK" + JSON.stringify(jsonpayload)) // 2d.
+    socket.send(nonce.value + "2CHECK" + JSON.stringify(jsonPayload)) // 2d.
     console.debug("sent sign up JSON")
     username = username_input
     
@@ -150,7 +150,7 @@ function Sanitise(username_input: string, password_input: string, dob_input: str
     }
 
     // email check (must be something@something.something, and same as value in email confirm box)
-    if (!(new RegExp('^[\\w!#$%&\'*+-/=?^_`{|}~]+[@][\\w]+[\.][\\w]+$').test(email_input))){
+    if (!(new RegExp('^[\\w!#$%&\'*+-/=?^_`{|}~]+[@][\\w]+.[\\w]+$').test(email_input))){
         alert("email invalid")
         return true
     }
@@ -165,10 +165,10 @@ function Cancel(){
     socket.send(nonce.value + "2NEXT1")
 }
 
-export function sign_up_screen(socket: WebSocket, response: String, screen: referenceObj, nonce: referenceObj){
+export const sign_up_screen = (socket: WebSocket, response: string, screen: referenceObj, nonce: referenceObj) => {
     // message handler for sign up screen
     if(response == "BADNAME"){ // backend sends this back if either/both username and password is wrong
-        alert("username in use") // todo
+        alert("username in use")
         return ""
     } else if (response.slice(0, 7) == "BADFORM") {
         alert(response.replace("BADFORM ", ""))
