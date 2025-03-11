@@ -33,7 +33,7 @@ const Start: React.FC = () => {
         {/* <div id="button_div"> */}
             <button onClick={() => Login()}>Sign in</button><br />
             <button onClick={() => SignUp()}>Sign up</button><br />
-            <button>Proceed as guest</button>
+            <button onClick={() => socket.send(nonce.value + "1GUEST")}>Proceed as guest</button>
         {/* </div> */}
         </>
     );
@@ -66,6 +66,11 @@ export function login_screen(socket: WebSocket, response: String, screen: refere
         return ""
     } else if(response == "OK"){ // if backsend sends this back that means the login was accepted
         socket.send(nonce.value + "1NEXT3" + (document.getElementById("username_input") as HTMLInputElement).value) // this tells the backend we are moving onto the store locator
+        return ""
+    } else if(response.slice(0, 5) == "GUEST") {
+        username.value = response.slice(5, 20)
+        console.debug("guest username received: " + username.value)
+        socket.send(nonce.value + "1NEXT3" + username.value)
         return ""
     } else if(response.slice(0, 4) == "NEXT"){
         if(response.slice(4, 5) == "2"){

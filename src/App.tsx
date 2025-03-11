@@ -10,6 +10,7 @@ import {
 } from "react-router-dom";
 import Start, { login_screen } from './Start'
 import SignUp, { sign_up_screen } from './Sign_up'
+import LocateStore from './Locate_store';
 
 export class referenceObj {
   value: any = ScreenState.Loading;
@@ -26,7 +27,7 @@ export let nonce = new referenceObj(new String("-1"))
 let lastChecked = new Date()
 export let username = new referenceObj(new String("-1"))
 const StatusCheckInterval = 120000 // set it to 2 mins later (btw its in milliseconds)
-const useCloud = false
+const useCloud = true
 const BackendLink = useCloud ? "wss://efrgtghyujhygrewds.ip-ddns.com:8080/" : "ws://localhost:8080/" // change the ip accordingly
 
 // this block will block the rest of the code from running before it is done
@@ -54,7 +55,7 @@ function App() {
         {/* <Navbar /> */}
         <Routes>
           <Route path="/scanning-website" element={<Loading />} />
-          {/* <Route path="/scanning-website/locatestore" element={<LocateStore />} /> */}
+          <Route path="/scanning-website/locatestore" element={<LocateStore />} />
           <Route path="/scanning-website/signup" element={<SignUp />} />
           <Route path="/scanning-website/login" element={<Start />} />
           {/* <Route path="/profile/:userId" element={<Profile />} /> */}
@@ -178,7 +179,7 @@ const StatusCheck = () => {
       // but since we need to use the same timer so i dont want to make multiple timers just to status check
       // so they are all aggregated here, which is fine as no reply from the server should be sent anyways so no need to handle that
 
-      console.log(screen.value)
+      // console.log(screen.value)
       if (screen.value == ScreenState.Start || screen.value == ScreenState.SignUp) { // 2b.
         //start screen check items: token
         socket.send(nonce.value + (screen.value == ScreenState.Start ? "1" : "2") + "STATUS" + token.value)
