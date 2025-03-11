@@ -5,9 +5,9 @@ import { ScreenState } from "./Screen_state";
 
     // 2 = sign up screen
         // a. check items: token
-        // b. do regular status checks until user either clicks log in sign up or proceed as guest***
-        // c. if user enters all relevant info and client sanitises input***
-        // d. client then sends username to backend to check for clashes***
+        // b. do regular status checks until user either clicks sign up or cancel***
+        // c. user enters all relevant info and client sanitises input***
+        // d. client then sends the JSON form to backend***
         // with the format "2CHECK[JSON of the entire sign up form]"
         // e. server does another sanitize check
             // I. if there are errors then the list of error messages would be sent down prepended with "2BADFORM"
@@ -54,14 +54,11 @@ const SignUp: React.FC = () => {
         <h2>Please verify your email by typing in the verification codes sent to your email</h2>
         <h2>Oh no I spilled the code its ABCDEF what am I gonna doooooooo</h2>
         <input type="text" id="code_input" placeholder='verification code'></input><br/>
-        <button onClick={() => Verify()}>Verify</button>
+        {/* 2g. below */}
+        <button onClick={() => socket.send(nonce.value + "2EMAIL" + (document.getElementById("code_input") as HTMLInputElement).value)}>Verify</button>
 
         </>
     )
-};
-
-function Verify(){
-    socket.send(nonce.value + "2EMAIL" + (document.getElementById("code_input") as HTMLInputElement).value)
 }
 
 function SignUpForm(){
@@ -71,73 +68,7 @@ function SignUpForm(){
     const dob_input = (document.getElementById("dob_input") as HTMLInputElement).value
     const email_input = (document.getElementById("email_input") as HTMLInputElement).value
     
-    // check if empty
-    if (username_input == ""){
-        alert("please enter your username")
-        return
-    }
-    if (password_input == ""){
-        alert("please enter your password")
-        return
-    }
-    if ((document.getElementById("first_name_input") as HTMLInputElement).value == ""){
-        alert("please enter your first name")
-        return
-    }
-    if ((document.getElementById("last_name_input") as HTMLInputElement).value == ""){
-        alert("please enter your last name")
-        return
-    }
-    if (dob_input == ""){
-        alert("please enter your date of birth")
-        return
-    }
-    if (email_input == ""){
-        alert("please enter your email")
-        return
-    }
-
-    // username checks (no spaces)
-    if (username_input.includes(" ")){
-        alert("usernames cannot have spaces")
-        return
-    }
-
-    // password checks (need lower case upper case and number, at least 8 long, and same as password confirm box)
-    if (password_input.length < 8){
-        alert("passwords must be at least 8 long")
-        return
-    }
-    if (!(new RegExp('^.*[a-z].*$').test(password_input))){
-        alert("passwords need to have lower case characters")
-        return
-    }
-    if (!(new RegExp('^.*[A-Z].*$').test(password_input))){
-        alert("passwords need to have upper case characters")
-        return
-    }
-    if (!(new RegExp('^.*\\d.*$').test(password_input))){
-        alert("passwords need to have numbers")
-        return
-    }
-    if ((document.getElementById("password_confirm") as HTMLInputElement).value != password_input){
-        alert("password confirm incorrect")
-        return
-    }
-
-    // dob check (format being YYYY-MM-DD)
-    if (!(new RegExp('^\\d{4}[-]\\d{2}[-]\\d{2}$').test(dob_input))){
-        alert("dates should have the format of YYYY-MM-DD")
-        return
-    }
-
-    // email check (must be something@something.something, and same as value in email confirm box)
-    if (!(new RegExp('^[\\w!#$%&\'*+-/=?^_`{|}~]+[@][\\w]+[\.][\\w]+$').test(email_input))){
-        alert("email invalid")
-        return
-    }
-    if ((document.getElementById("email_confirm") as HTMLInputElement).value != email_input){
-        alert("email confirm incorrect")
+    if (Sanitise(username_input, password_input, dob_input, email_input)){ // 2c.
         return
     }
 
@@ -151,10 +82,83 @@ function SignUpForm(){
     }
     console.debug(JSON.stringify(jsonpayload))
 
-    socket.send(nonce.value + "2CHECK" + JSON.stringify(jsonpayload))
+    socket.send(nonce.value + "2CHECK" + JSON.stringify(jsonpayload)) // 2d.
     console.debug("sent sign up JSON")
     username = username_input
     
+}
+
+function Sanitise(username_input: string, password_input: string, dob_input: string, email_input: string){
+    // check if empty
+    if (username_input == ""){
+        alert("please enter your username")
+        return true
+    }
+    if (password_input == ""){
+        alert("please enter your password")
+        return true
+    }
+    if ((document.getElementById("first_name_input") as HTMLInputElement).value == ""){
+        alert("please enter your first name")
+        return true
+    }
+    if ((document.getElementById("last_name_input") as HTMLInputElement).value == ""){
+        alert("please enter your last name")
+        return true
+    }
+    if (dob_input == ""){
+        alert("please enter your date of birth")
+        return true
+    }
+    if (email_input == ""){
+        alert("please enter your email")
+        return true
+    }
+
+    // username checks (no spaces)
+    if (username_input.includes(" ")){
+        alert("usernames cannot have spaces")
+        return true
+    }
+
+    // password checks (need lower case upper case and number, at least 8 long, and same as password confirm box)
+    if (password_input.length < 8){
+        alert("passwords must be at least 8 long")
+        return true
+    }
+    if (!(new RegExp('^.*[a-z].*$').test(password_input))){
+        alert("passwords need to have lower case characters")
+        return true
+    }
+    if (!(new RegExp('^.*[A-Z].*$').test(password_input))){
+        alert("passwords need to have upper case characters")
+        return true
+    }
+    if (!(new RegExp('^.*\\d.*$').test(password_input))){
+        alert("passwords need to have numbers")
+        return true
+    }
+    if ((document.getElementById("password_confirm") as HTMLInputElement).value != password_input){
+        alert("password confirm incorrect")
+        return true
+    }
+
+    // dob check (format being YYYY-MM-DD)
+    if (!(new RegExp('^\\d{4}[-]\\d{2}[-]\\d{2}$').test(dob_input))){
+        alert("dates should have the format of YYYY-MM-DD")
+        return true
+    }
+
+    // email check (must be something@something.something, and same as value in email confirm box)
+    if (!(new RegExp('^[\\w!#$%&\'*+-/=?^_`{|}~]+[@][\\w]+[\.][\\w]+$').test(email_input))){
+        alert("email invalid")
+        return true
+    }
+    if ((document.getElementById("email_confirm") as HTMLInputElement).value != email_input){
+        alert("email confirm incorrect")
+        return true
+    }
+    return false
 }
 
 function Cancel(){
@@ -182,7 +186,7 @@ export function sign_up_screen(socket: WebSocket, response: String, screen: refe
             console.debug("move to login")
             return "1"
         } else if(response.slice(4, 5) == "3"){
-            screen.value = ScreenState.StoreLocator
+            screen.value = ScreenState.StoreLocator // 2i.
             console.debug("move to store locator")
             return "3"
         }

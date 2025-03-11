@@ -112,7 +112,6 @@ const BackendTalk = () => {
           break
 
         case "0":
-
           if (await token_exchange(socket, response, screen, token, nonce)) {
             navigator("/scanning-website/login")
           }
@@ -179,12 +178,12 @@ const StatusCheck = () => {
       // but since we need to use the same timer so i dont want to make multiple timers just to status check
       // so they are all aggregated here, which is fine as no reply from the server should be sent anyways so no need to handle that
 
-      if (screen.value == ScreenState.Start || screen.value == ScreenState.SignUp) {
+      console.log(screen.value)
+      if (screen.value == ScreenState.Start || screen.value == ScreenState.SignUp) { // 2b.
         //start screen check items: token
-        let screenID = screen.value == ScreenState.Start ? "1" : "2"
-        socket.send(nonce.value + screenID + "STATUS" + token.value)
+        socket.send(nonce.value + (screen.value == ScreenState.Start ? "1" : "2") + "STATUS" + token.value)
         startTimer()
-        console.debug("sent \"" + nonce.value + screenID + "STATUS" + token.value)
+        console.debug("sent \"" + nonce.value + (screen.value == ScreenState.Start ? "1" : "2") + "STATUS" + token.value)
       }
 
     }, StatusCheckInterval)

@@ -27,55 +27,6 @@ export async function token_exchange(
     token: referenceObj,
     nonce: referenceObj,
 ): Promise<boolean>{
-    
-    // if (!keySent) {
-
-    //     if (!server_public_key.value && keyReceived.value) {
-    //         // socket.send(String("0ACK")) // 0a. ACK
-    //         keyReceived.value = false
-
-    //         function str2ab(str:string) {
-    //             const buf = new ArrayBuffer(str.length);
-    //             const bufView = new Uint8Array(buf);
-    //             for (let i = 0, strLen = str.length; i < strLen; i++) {
-    //                 bufView[i] = str.charCodeAt(i);
-    //             }
-    //             return buf;
-    //         }
-
-    //         const pemHeader = "-----BEGIN PUBLIC KEY-----";
-    //         const pemFooter = "-----END PUBLIC KEY-----";
-    //         const pemContents = response.substring(
-    //             pemHeader.length,
-    //             response.length - pemFooter.length - 1,
-    //         );
-    //         // base64 decode the string to get the binary data
-    //         const binaryDerString = window.atob(pemContents);
-    //         // convert from a binary string to an ArrayBuffer
-    //         const binaryDer = str2ab(binaryDerString);
-    //         server_public_key.value = await window.crypto.subtle.importKey("spki", binaryDer,
-    //             {
-    //               name: "RSA-OAEP",
-    //               hash: "SHA-256",
-    //             },
-    //             true,
-    //             ["encrypt"],
-    //         );
-    //         keyReceived.value = true
-    //         console.log("key stored")
-
-    //         await sendEncrypted("0ACK")
-
-    //     }
-
-    //     if (keyRdy.value) {
-    //         // socket.send(public_key)
-    //         keySent = true
-    //     } else {
-    //         // socket.send("WAIT")
-    //     }
-    //     return false
-
     /*} else*/ if (response == "NEXT") {
         // console.log("b4: " + screen)
         screen.value = ScreenState.Start // 0i moving on
