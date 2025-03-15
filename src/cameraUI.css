@@ -1,0 +1,32 @@
+#cameraUIWrapper {
+    --UI-height: 1;
+    --camera-height: 1;
+    --content-height: 1;
+
+    height: var(--UI-height);
+    display: grid;
+    grid-template-areas: "camera" "content";
+    grid-template-rows: var(--camera-height) var(--content-height);
+}
+
+#contentDiv {
+
+    border-top: 3px solid #aad2ba;
+    display: grid;
+    grid-template-areas: "prompt" "list";
+    grid-template-rows: fit-content(5rem);
+
+}
+
+#listDiv {
+    --prompt-height: 1;
+
+    position: relative;
+    height: calc(var(--content-height) - var(--prompt-height));
+    max-height: calc(var(--content-height) - var(--prompt-height));
+    overflow-y: scroll;
+}
+
+BarcodeScannerComponent {
+
+}

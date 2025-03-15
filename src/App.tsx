@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import './App.css'
-import { ScreenState } from './Screen_state';
+import {ScreenState} from './Screen_state';
 import { token_exchange, Loading } from './Token_exchange';
 import {
   BrowserRouter as Router,
@@ -10,24 +10,12 @@ import {
 } from "react-router-dom";
 import Start, { login_screen } from './Start'
 import SignUp, { sign_up_screen } from './Sign_up'
-import LocateStore, {store_locator_screen} from './Locate_store';
+import LocateStore, { store_locator_screen } from './Locate_store';
+import {nonce, screenStateObj, token, username} from "./Reference_objects.tsx";
 
-export class referenceObj {
-  value: unknown
-
-  constructor(value: unknown) {
-    this.value = value
-  }
-}
-
-const screen: referenceObj = new referenceObj(ScreenState.Loading)
-// let page: referenceObj = new referenceObj(CircularIndeterminate())
-const token = new referenceObj(String("-1"))
-export const nonce = new referenceObj(String("-1"))
 const lastChecked = new Date()
-export const username = new referenceObj(String("-1"))
 const StatusCheckInterval = 120000 // set it to 2 mins later (btw its in milliseconds)
-const useCloud = true
+const useCloud = false
 const BackendLink = useCloud ? "wss://efrgtghyujhygrewds.ip-ddns.com:8080/" : "ws://localhost:8080/" // change the ip accordingly
 export let socket: WebSocket
 
@@ -110,48 +98,44 @@ const BackendTalk = () => {
           break
 
         case "0":
-          if (await token_exchange(socket, response, screen, token, nonce)) {
+          if (await token_exchange(socket, response, screenStateObj, token, nonce)) {
             navigator("/scanning-website/login")
           }
-          console.debug("screen state: " + screen.value)
+          console.debug("screen state: " + screenStateObj.value)
           break
 
         case "1":
 
-          switch (login_screen(socket, response, screen, nonce)) {
+          switch (login_screen(socket, response, screenStateObj, nonce)) {
             case "2":
               navigator("/scanning-website/signup")
               break
             case "3":
               navigator("/scanning-website/locatestore")
+              socket.send(nonce.value + "3LIST")
               break
           }
           break
         case "2":
-          switch (sign_up_screen(socket, response, screen, nonce)) {
+          switch (sign_up_screen(socket, response, screenStateObj, nonce)) {
             case "1":
               navigator("/scanning-website/login")
               break
             case "3":
               navigator("/scanning-website/locatestore")
+              socket.send(nonce.value + "3LIST")
               break
           }
           break
 
         case "3":
-          switch (store_locator_screen(socket, response, /*screen, */nonce)) {
+          switch (store_locator_screen(socket, response, /*screenStateObj, */nonce)) {
             case "4":
               // switch to main app
               break
           }
           break
       }
-
-      // if (screen.value == ScreenState.Loading) {
-      //   page.value = CircularIndeterminate()
-      // } else if (screen.value == ScreenState.Start) {
-      //   page.value = StartScreen
-      // }
 
     };
 
@@ -182,17 +166,17 @@ const StatusCheck = () => {
 
       console.debug("status check o clock")
 
-      // normally i would split all the different status checks into their own file/function of the relevant screen
+      // normally i would split all the different status checks into their own file/function of the relevant screenStateObj
       // but since we need to use the same timer so i dont want to make multiple timers just to status check
       // so they are all aggregated here, which is fine as no reply from the server should be sent anyways so no need to handle that
 
-      // console.log(screen.value)
-      if (screen.value == ScreenState.Start || screen.value == ScreenState.SignUp) { // 2b.
+      // console.log(screenStateObj.value)
+      if (screenStateObj.value == ScreenState.Start || screenStateObj.value == ScreenState.SignUp) { // 2b.
         //start screen check items: token
-        socket.send(nonce.value + (screen.value == ScreenState.Start ? "1" : "2") + "STATUS" + token.value)
-        console.debug("sent \"" + nonce.value + (screen.value == ScreenState.Start ? "1" : "2") + "STATUS" + token.value)
+        socket.send(nonce.value + (screenStateObj.value == ScreenState.Start ? "1" : "2") + "STATUS" + token.value)
+        console.debug("sent \"" + nonce.value + (screenStateObj.value == ScreenState.Start ? "1" : "2") + "STATUS" + token.value)
 
-      } else if (screen.value == ScreenState.StoreLocator) {
+      } else if (screenStateObj.value == ScreenState.StoreLocator) {
         socket.send(nonce.value + "3STATUS" + token.value + username.value)
         console.debug("sent \"" + nonce.value + "3STATUS" + token.value + username.value)
       }
@@ -250,10 +234,5 @@ const InactivityLogout = () => {
 
   return null; // This component does not render anything
 };
-
-export function changeScreen(path: string) {
-  const navigator = useNavigate()
-  navigator(path)
-}
 
 export default App

@@ -1,6 +1,7 @@
 import React from "react";
-import { nonce, referenceObj, socket, username } from "./App";
 import { ScreenState } from "./Screen_state";
+import {socket} from "./App.tsx";
+import {nonce, referenceObj, username} from "./Reference_objects.tsx";
 // import { login } from "../services/UserApi";
 
 // 1 = start screen
@@ -28,7 +29,6 @@ const Start: React.FC = () => {
     return (
         <>
             <h1>Super Scanner</h1><br/>
-            <p>3</p>
             <input type="text" id="username_input" placeholder='username'></input>
             <input type="password" id="password_input" placeholder='password'></input><br />
             {/* <div id="button_div"> */}
