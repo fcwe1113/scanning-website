@@ -25,6 +25,20 @@
     height: calc(var(--content-height) - var(--prompt-height));
     max-height: calc(var(--content-height) - var(--prompt-height));
     overflow-y: scroll;
+    border-top: #6e8f71 2px solid;
+}
+
+.shopContainer {
+    border-bottom: #6e8f71 2px solid;
+    text-align: left;
+}
+
+.mainText {
+    font-size: 12px;
+}
+
+.otherText {
+    font-size: 10px;
 }
 
 BarcodeScannerComponent {

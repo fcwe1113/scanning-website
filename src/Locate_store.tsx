@@ -1,17 +1,17 @@
 import BarcodeScannerComponent from "react-qr-barcode-scanner";
 import React, { useEffect, useState } from 'react';
 import { getWindowDimensions } from "./App.tsx";
-import {receivingList, referenceObj, shopList} from "./Reference_objects.tsx";
+import {referenceObj, shopList} from "./Reference_objects.tsx";
 import "./cameraUI.css"
 import "./index.css"
+import { ToastContainer, toast } from 'react-toastify';
 // import { ScreenState } from "./Screen_state.tsx";
 
 // camera module from https://github.com/jamenamcinteer/react-qr-barcode-scanner
 
 let setScannerResult: React.Dispatch<React.SetStateAction<string>> // setter for scanner result
 let setScanningState: React.Dispatch<React.SetStateAction<boolean>>
-// let setLoadingList: React.Dispatch<React.SetStateAction<boolean>>
-
+let setLoadingList: React.Dispatch<React.SetStateAction<boolean>>
 
 const cameraHeight = 0.4 // in percentage ofc
 
@@ -39,13 +39,14 @@ const LocateStore: React.FC = () => {
     const [result, setResult] = useState("");
     const [scanning, setScanning] = useState(true);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [loading, _setLoading] = useState(true);
+    const [loading, setLoading] = useState(true);
     const [windowDimensions, setWindowDimensions] = useState(getWindowDimensions());
     const [promptHeight, setPromptHeight] = useState(0);
+    const [selectedStore, setSelectedStore] = useState(-1 as number);
 
     setScannerResult = setResult
     setScanningState = setScanning;
-    // setLoadingList = setLoading
+    setLoadingList = setLoading
     const defaultFontSize = getDefaultFontSize()
     const fullHeight = (windowDimensions.height / defaultFontSize - 4) * defaultFontSize
     const fullWidth = (windowDimensions.width / defaultFontSize - 4) * defaultFontSize
@@ -67,7 +68,7 @@ const LocateStore: React.FC = () => {
 
     useEffect(() => {
         setPromptHeight((document.getElementById("promptDiv") as HTMLDivElement).clientHeight)
-    }, [(document.getElementById("promptDiv") as HTMLDivElement)]);
+    }, [document.getElementById("promptDiv") as HTMLDivElement]);
 
     const cameraUIvars = {
         "--UI-height": String(fullHeight) + "px",
@@ -76,7 +77,7 @@ const LocateStore: React.FC = () => {
     } as React.CSSProperties
 
     const list = (list: referenceObj) => {
-        if (receivingList) {
+        if (loading) {
             return (
                 <>
                     <p>Loading...</p>
@@ -84,14 +85,25 @@ const LocateStore: React.FC = () => {
             )
         }
 
-        // let output: Element = (<></>)
+        const output: Element[] = []
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         for (let i = 0; i < list.value.length; i++) {
-            // const json = JSON.parse(list.value[i])
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            const shopName: string = (list.value as Array<string>)[i]["name"]
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            const shopAddress: string = (list.value as Array<string>)[i]["address"]
+            output.push((<div className={"shopContainer"} onClick={() => {notify(i)}}><p className={"mainText"}>{shopName}</p><p className={"otherText"}>{shopAddress}</p></div>) as unknown as Element)
         }
+        output.push((<ToastContainer autoClose={5000} onClick={() => {console.log("hi")}}/>) as unknown as Element)
+        return output
     }
 
+    const notify = (i: number) => toast((<><p>Please click on this message to confirm you are in this store:</p>
+        <br /><p>{(shopList.value as Array<string>)[i]["name" as unknown as number]}</p></>));
+    
     return (
         <>
             <div id={"cameraUIWrapper"} style={cameraUIvars}>
@@ -112,23 +124,16 @@ const LocateStore: React.FC = () => {
                         delay={1000} // i am guessing this is 1000 millis???
                     />
                 </div>
+                {/*<Modal opened={opened} onClose={close} title={"Please confirm the selected store"}>*/}
+                {/*    <p>hi</p>*/}
+                {/*    <p>{(shopList.value as Array<string>)[selectedStore]}</p>*/}
+                {/*</Modal>*/}
                 <div id={"contentDiv"}>
                     <div id={"promptDiv"}>
                         <p>Please allow camera permissions, or choose a store from the list below</p>
                     </div>
                     <div id={"listDiv"} style={ { "--prompt-height": String(promptHeight) + "px" } as React.CSSProperties }>
                         {list(shopList)}
-                        <p>
-                            Lorem ipsum odor amet, consectetuer adipiscing elit. Maecenas mauris cras malesuada pellentesque, sapien pellentesque rutrum. Volutpat netus turpis integer placerat cubilia magna. Sollicitudin viverra nullam fringilla fames lobortis. Bibendum integer aliquam vestibulum luctus ornare. Arcu viverra ultricies consequat porttitor nostra ullamcorper et nibh.
-
-                            Blandit sodales etiam tempor duis dictumst. Placerat velit montes torquent interdum integer. Dignissim euismod nam sollicitudin mattis fusce posuere fringilla. Pellentesque rhoncus nibh, arcu penatibus semper vulputate? Vulputate donec tellus potenti justo mattis. Ipsum venenatis rutrum orci quis adipiscing mi hendrerit primis.
-
-                            Venenatis cursus tempor amet quam orci urna sapien purus. Torquent vivamus cursus senectus vel aliquet blandit curae tincidunt. Congue taciti libero diam; elementum natoque viverra. Bibendum dolor sollicitudin molestie; duis gravida eros blandit maximus. Fermentum dapibus platea orci pharetra venenatis consectetur praesent dignissim. Odio eu morbi laoreet rutrum erat tortor; ultricies sagittis.
-
-                            Eget est risus dapibus porta nisi morbi senectus cursus. Felis lobortis vitae imperdiet massa felis aenean amet. Potenti nam etiam sagittis eu quis ac ut congue venenatis. Id venenatis tellus imperdiet ad ultricies proin bibendum. Condimentum parturient laoreet maximus curae conubia commodo fermentum mauris aliquam. Facilisis dictumst volutpat in cubilia mauris dignissim facilisi et. Sit ipsum posuere neque fringilla per a.
-
-                            Magna netus mollis venenatis curabitur natoque aliquet magnis. Fringilla luctus ornare magnis taciti pharetra. Magnis pretium diam imperdiet; mollis aliquam massa. Imperdiet nunc dui purus dictum etiam egestas inceptos mollis. Non congue class nibh felis bibendum aenean luctus magna. Libero hendrerit adipiscing aenean; tincidunt et massa tincidunt. Litora platea commodo laoreet vulputate est fringilla. Nostra ultrices eu penatibus posuere dui. Pellentesque adipiscing mus tincidunt auctor sodales finibus.
-                        </p>
                     </div>
                 </div>
             </div>
@@ -146,12 +151,10 @@ export const store_locator_screen = (socket: WebSocket, response: string, /*scre
     // message handler for store locator screen
 
     if (response.slice(0, 4) == "LIST") { // backend sends this back if either/both username and password is wrong
-        response = response.slice(5, response.length)
-        const json: Array<string> = JSON.parse(response)
-        console.log("hi " + json.list);
-        return ""
-    } else if (response.slice(0, 7) == "BADFORM") {
-        alert(response.replace("BADFORM", ""))
+        response = response.slice(4, response.length)
+        shopList.value = JSON.parse(response)["list"]
+        setLoadingList(false) // if the server is too quick this will fail to run (almost impossible once deployed)
+
         return ""
     }
 

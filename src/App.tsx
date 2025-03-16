@@ -34,27 +34,27 @@ function App() {
   console.log(lastChecked)
   return (
     <>
-      <Router>
-        <InactivityLogout />
-        <BackendTalk /> {/* this means run whatever function name we put in < /> as a hook(special type of async function idk) */}
-        <StatusCheck />
-        {/* <Navbar /> */}
-        <Routes>
-          <Route path="/scanning-website" element={<Loading />} />
-          <Route path="/scanning-website/locatestore" element={<LocateStore />} />
-          <Route path="/scanning-website/signup" element={<SignUp />} />
-          <Route path="/scanning-website/login" element={<Start />} />
-          {/* <Route path="/profile/:userId" element={<Profile />} /> */}
-          <Route
-          // path="/dashboard"
-          // element={
-          //   <PrivateRoute>
-          //     <Dashboard />
-          //   </PrivateRoute>
-          // }
-          />
-        </Routes>
-      </Router>
+        <Router>
+          <InactivityLogout />
+          <BackendTalk /> {/* this means run whatever function name we put in < /> as a hook(special type of async function idk) */}
+          <StatusCheck />
+          {/* <Navbar /> */}
+          <Routes>
+            <Route path="/scanning-website" element={<Loading />} />
+            <Route path="/scanning-website/locatestore" element={<LocateStore />} />
+            <Route path="/scanning-website/signup" element={<SignUp />} />
+            <Route path="/scanning-website/login" element={<Start />} />
+            {/* <Route path="/profile/:userId" element={<Profile />} /> */}
+            <Route
+            // path="/dashboard"
+            // element={
+            //   <PrivateRoute>
+            //     <Dashboard />
+            //   </PrivateRoute>
+            // }
+            />
+          </Routes>
+        </Router>
     </>
   )
 
