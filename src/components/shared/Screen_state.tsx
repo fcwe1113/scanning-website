@@ -1,9 +1,9 @@
 export enum ScreenState {
     Loading = 0, // number auto increments for the rest of the enums
-    Start,
+    Login,
     SignUp,
     StoreLocator,
-    Scanner,
+    MainScanner,
     Payment,
     Transfer,
     Done

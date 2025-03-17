@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { socket } from "./Shared_objs.tsx";
-import { ScreenState } from "./Screen_state";
-import {nonce, referenceObj} from "./Shared_objs.tsx";
+import { useEffect, useState } from "react";
+import {socket, username} from "../shared/Shared_objs.tsx";
+import {nonce} from "../shared/Shared_objs.tsx";
+import {globalSetEmailVerify} from "./Sign_up_message_handler.tsx";
 // import { login } from "../services/UserApi";
 
     // 2 = sign up screen
@@ -22,16 +22,12 @@ import {nonce, referenceObj} from "./Shared_objs.tsx";
         // h. server runs the sql command to insert a new row containing all the given information, and send "2OK" after its done
         // i. move on to the store locator
 
-// let email_verify: boolean = false
-let username: string = ""
-let globalSetEmailVerify: React.Dispatch<React.SetStateAction<boolean>>
-
-const SignUp: React.FC = () => {
+const SignUp = () => {
     const [EmailVerify, setEmailVerify] = useState(false)
     useEffect(() => {
         setEmailVerify(EmailVerify)
     }, [EmailVerify])
-    globalSetEmailVerify = setEmailVerify // pass the function out into global
+    setEmailVerify.bind(globalSetEmailVerify) // pass the function out into global
 
     // note that this page is just functional, and deffo not good looking yet, but ill fix that later bc css ptsd is a real issue and more ppl should talk abt it
     return !EmailVerify ? (
@@ -85,7 +81,7 @@ function SignUpForm(){
 
     socket.send(nonce.value + "2CHECK" + JSON.stringify(jsonPayload)) // 2d.
     console.debug("sent sign up JSON")
-    username = username_input
+    username.value = username_input
     
 }
 
@@ -164,34 +160,6 @@ function Sanitise(username_input: string, password_input: string, dob_input: str
 
 function Cancel(){
     socket.send(nonce.value + "2NEXT1")
-}
-
-export const sign_up_screen = (socket: WebSocket, response: string, screen: referenceObj, nonce: referenceObj) => {
-    // message handler for sign up screen
-    if(response == "BADNAME"){ // backend sends this back if either/both username and password is wrong
-        alert("username in use")
-        return ""
-    } else if (response.slice(0, 7) == "BADFORM") {
-        alert(response.replace("BADFORM ", ""))
-        return ""
-    } else if (response == "NAMEOK") {
-        // email_verify = true // try and make this flag work
-        globalSetEmailVerify(true)
-
-    } else if(response == "OK"){ // if backsend sends this back that means the login was accepted
-        socket.send(nonce.value + "2NEXT3" + username) // this tells the backend we are moving onto the store locator
-        return ""
-    } else if(response.slice(0, 4) == "NEXT"){
-        if(response.slice(4, 5) == "1"){
-            screen.value = ScreenState.Start
-            console.debug("move to login")
-            return "1"
-        } else if(response.slice(4, 5) == "3"){
-            screen.value = ScreenState.StoreLocator // 2i.
-            console.debug("move to store locator")
-            return "3"
-        }
-    }
 }
 
 export default SignUp;

@@ -1,233 +1,78 @@
-import { useEffect, useRef } from 'react'
+import {ReactNode, useEffect, useRef, useState} from 'react'
 import './App.css'
-import {ScreenState} from './Screen_state';
-import { token_exchange, Loading } from './Token_exchange';
-import {
-  BrowserRouter as Router,
-  Route,
-  Routes,
-  useNavigate,
-} from "react-router-dom";
-import Start, { login_screen } from './Start'
-import SignUp, { sign_up_screen } from './Sign_up'
-import LocateStore, { store_locator_screen } from './Locate_store';
-import {connect, nonce, screenStateObj, socket, storeID, token, username} from "./Shared_objs.tsx";
-import {MainScanner} from "../Scanner.tsx";
+import {ScreenState} from './components/shared/Screen_state.tsx';
+import {Token_exchange} from './components/Token_exchange/Token_exchange.tsx';
+import Login from './components/Login/Login.tsx'
+import SignUp from './components/Sign_up/Sign_up.tsx'
+import {connect, screenContext, setGlobalScreenState, socket} from "./components/shared/Shared_objs.tsx";
+import {MainScanner} from "./components/Scanner/Scanner.tsx";
+import LocateStore from "./components/Locate_store/Locate_store.tsx";
+import BackendTalk, {BackendLink} from './hooks/BackendTalk.tsx';
+import {startStatusCheckTimer} from "./components/shared/useStatusCheck.tsx";
 
-const lastChecked = new Date()
-const StatusCheckInterval = 120000 // set it to 2 mins later (btw its in milliseconds)
-const useCloud = false
-const BackendLink = useCloud ? "wss://efrgtghyujhygrewds.ip-ddns.com:8080/" : "ws://localhost:8080/" // change the ip accordingly
-
-function App() {
-
-  // for the camera lib use the one demoed in kybarg.github.io/react-qr-scanner/
-
-  console.log(lastChecked)
-  return (
-    <>
-        <Router>
-          <InactivityLogout />
-          <BackendTalk /> {/* this means run whatever function name we put in < /> as a hook(special type of async function idk) */}
-          <StatusCheck />
-          {/* <Navbar /> */}
-          <Routes>
-            <Route path="/scanning-website" element={<Loading />} />
-            <Route path="/scanning-website/locatestore" element={<LocateStore />} />
-            <Route path="/scanning-website/signup" element={<SignUp />} />
-            <Route path="/scanning-website/login" element={<Start />} />
-            <Route path="/scanning-website/scanner" element={<MainScanner />} />
-            <Route
-            // path="/dashboard"
-            // element={
-            //   <PrivateRoute>
-            //     <Dashboard />
-            //   </PrivateRoute>
-            // }
-            />
-          </Routes>
-        </Router>
-    </>
-  )
-
-}
-
-const BackendTalk = () => {
-  const navigator = useNavigate()
-
-  useEffect(() => {
-
-    connect(BackendLink)
-    socket.onopen = () => console.debug("websocket connected")
-
-    // Listen for messages
-    socket.onmessage = async (evt) => {
-      console.debug("received \"" + evt.data + "\"")
-
-      // first digit denotes client screen status
-      // after reading the first digit get rid of it and pass the rest of the message into the relevant function
-      // messages sent from both ends should follow a similar format (at least for the first few chars)
-      // *** denotes client side tasks
-      // 0 = token exchange
-      // 1 = start screen
-      // 2 = sign up screen
-      // 3 = store locator
-      // 4 = main app (the scanning screen)
-      // 5 = payment screen
-      // 6 = transferring to till (either by choice or to check id)
-      // 7 = after payment/logging out
-
-      let response = evt.data
-
-      const oprand = response.slice(0, 1)
-      response = response.replace(oprand, "")
-      switch (oprand) {
-        case "S":
-          if (response.slice(0, 5) == "TATUS") {
-            nonce.value = response.replace("TATUS", "")
-            console.debug("new nonce rceived: " + nonce.value)
-          }
-          break
-
-        case "0":
-          if (await token_exchange(socket, response, screenStateObj, token, nonce)) {
-            navigator("/scanning-website/login")
-          }
-          console.debug("screen state: " + screenStateObj.value)
-          break
-
-        case "1":
-
-          switch (login_screen(socket, response, screenStateObj, nonce)) {
-            case "2":
-              navigator("/scanning-website/signup")
-              break
-            case "3":
-              navigator("/scanning-website/locatestore")
-              socket.send(nonce.value + "3LIST")
-              break
-          }
-          break
-        case "2":
-          switch (sign_up_screen(socket, response, screenStateObj, nonce)) {
-            case "1":
-              navigator("/scanning-website/login")
-              break
-            case "3":
-              navigator("/scanning-website/locatestore")
-              socket.send(nonce.value + "3LIST") // 3c.
-              break
-          }
-          break
-
-        case "3":
-          switch (store_locator_screen(socket, response, /*screenStateObj, */nonce)) {
-            case "4":
-              navigator("/scanning-website/scanner")
-              break
-          }
-          break
-      }
-
-    };
-
-    return () => socket.close()
-  }, [])
-  return null
-}
-
-const StatusCheck = () => {
-
-  // client sends a status check to the server every 2 minutes
-  // if the server does not receive a status check within 3 minutes of last check it will shut down the connection
-  // that 1 min leeway is to prevent high ping from disconnecting normal users
-  // the status check is done to prevent illegal data manip on client side
-
+function App(): ReactNode {
+  
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-expect-error
+  const [screen, setScreen] = useState<ScreenState>(screenContext);
+  // const [screenState, setScreenState] = useState<ScreenState>(ScreenState.Loading);
+  // const useEffectTrigger = useRef(false)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
+  startStatusCheckTimer(timerRef)
+  setGlobalScreenState.value = setScreen
 
-  const startTimer = () => {
-    console.debug("timer started")
-    if (timerRef.current) {
-      clearTimeout(timerRef.current)
-    }
-
-    timerRef.current = setTimeout(() => {
-
-      // now I know that the socket is not *garunteed* garunteed to have made the connection at this point
-      // but if the client failed to make a connection after 2 minutes we have bigger problems
-
-      console.debug("status check o clock")
-
-      // normally i would split all the different status checks into their own file/function of the relevant screenStateObj
-      // but since we need to use the same timer so i dont want to make multiple timers just to status check
-      // so they are all aggregated here, which is fine as no reply from the server should be sent anyways so no need to handle that
-
-      // console.log(screenStateObj.value)
-      if (screenStateObj.value == ScreenState.Start || screenStateObj.value == ScreenState.SignUp) { // 2b.
-        //start screen check items: token
-        socket.send(nonce.value + (screenStateObj.value == ScreenState.Start ? "1" : "2") + "STATUS" + token.value)
-        console.debug("sent \"" + nonce.value + (screenStateObj.value == ScreenState.Start ? "1" : "2") + "STATUS" + token.value)
-
-      } else if (screenStateObj.value == ScreenState.StoreLocator) {
-        socket.send(nonce.value + "3STATUS" + token.value + username.value)
-        console.debug("sent \"" + nonce.value + "3STATUS" + token.value + username.value)
-      } else if (screenStateObj.value == ScreenState.Scanner) {
-        socket.send(nonce.value + "4STATUS" + token.value + username.value + storeID.value)
-        console.debug("sent \"" + nonce.value + "4STATUS" + token.value + username.value + storeID.value)
-      }
-
-      startTimer()
-
-    }, StatusCheckInterval)
+  connect(BackendLink)
+  socket.onopen = () => console.log("websocket connected")
+  socket.onmessage = (event: MessageEvent) => {
+    console.debug("received \"" + event.data + "\"")
+    BackendTalk(event.data)
   }
 
+  // useEffect(() => { // essentially the websocket listener
+  //   connect(BackendLink)
+  //   socket.onopen = () => console.log("websocket connected")
+  //   const asyncListener = async () => {
+  //     socket.onmessage = async (evt) => {
+  //     console.debug("received \"" + evt.data + "\"")
+  //     BackendTalk(evt.data)
+  //     // useBackendTalk(evt.data)
+  //     // useEffectTrigger.current = !useEffectTrigger.current // is here so the hook keeps running
+  //   };}
+  //   asyncListener().then(() => {})
+
+    // connect(BackendLink)
+    // socket.onopen = () => console.debug("websocket connected")
+    // socket.onmessage = async (evt) => {
+    //   console.debug("received \"" + evt.data + "\"")
+    //   BackendTalk(evt.data)
+    //   // useBackendTalk(evt.data)
+    //   useEffectTrigger.current = !useEffectTrigger.current // is here so the hook keeps running
+    // };
+  //   return () => {} // may cause problems???
+  // }, [])
+
   useEffect(() => {
+    // todo
+    // might be that the page would rerun everytime the var change?
+    setScreen(screen)
+  }, [screen]);
 
-    startTimer()
-  })
+  switch (screen) {
+    case ScreenState.Loading:
+      return Token_exchange() as unknown as ReactNode
+    case ScreenState.Login:
+      return Login() as unknown as ReactNode
+    case ScreenState.SignUp:
+      return SignUp() as unknown as ReactNode
+    case ScreenState.StoreLocator:
+      return LocateStore() as unknown as ReactNode
+    case ScreenState.MainScanner:
+      return MainScanner() as unknown as ReactNode
+    default: // should never happen but who knows lol
+  }
 
-  return null
+  return (<><p>critical error i guess???</p></>) as unknown as ReactNode
+
 }
-
-const InactivityLogout = () => {
-  const navigate = useNavigate();
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-
-  const startTimer = () => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-    }
-
-    // Set timer to log out user after 5 minutes (300000 milliseconds) of inactivity
-    timerRef.current = setTimeout(() => {
-      console.log("User inactive for 5 minutes. Redirecting to login.");
-      // navigate("/login"); // Redirect to login after inactivity
-    }, 300000);
-  };
-
-  const resetTimer = () => {
-    console.log("User activity detected. Resetting timer.");
-    startTimer();
-  };
-
-  useEffect(() => {
-    // Adding event listeners to reset timer
-    window.addEventListener("mousemove", resetTimer);
-    window.addEventListener("keypress", resetTimer);
-    window.addEventListener("click", resetTimer);
-
-    startTimer(); // Start the inactivity timer when the component mounts
-
-    return () => {
-      // Cleanup function to clear timer and remove event listeners
-      clearTimeout(timerRef.current!);
-      window.removeEventListener("mousemove", resetTimer);
-      window.removeEventListener("keypress", resetTimer);
-      window.removeEventListener("click", resetTimer);
-    };
-  }, [navigate]);
-
-  return null; // This component does not render anything
-};
 
 export default App
