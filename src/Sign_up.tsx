@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { socket } from "./App";
+import { socket } from "./Shared_objs.tsx";
 import { ScreenState } from "./Screen_state";
-import {nonce, referenceObj} from "./Reference_objects.tsx";
+import {nonce, referenceObj} from "./Shared_objs.tsx";
 // import { login } from "../services/UserApi";
 
     // 2 = sign up screen

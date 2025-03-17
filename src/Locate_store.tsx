@@ -1,15 +1,28 @@
 import BarcodeScannerComponent from "react-qr-barcode-scanner";
-import React, { useEffect, useState } from 'react';
-import { getWindowDimensions } from "./App.tsx";
-import {referenceObj, shopList} from "./Reference_objects.tsx";
+import React, {ReactNode, useEffect, useState} from 'react';
+import {getWindowDimensions, socket} from "./Shared_objs.tsx";
+import {nonce, referenceObj, screenStateObj, shopList, storeID} from "./Shared_objs.tsx";
 import "./cameraUI.css"
 import "./index.css"
 import { ToastContainer, toast } from 'react-toastify';
-// import { ScreenState } from "./Screen_state.tsx";
+import {ScreenState} from "./Screen_state.tsx";
+
+// 3 = store locator
+    // a. check items: token, username
+    // b. do regular status checks until user scans/inputs a store***
+    // c. client asks for the list of stores with "3LIST"***
+    // d. server pings down the list of stores, in a json that is just an array of jsons with the header of "list" appended by "3LIST"
+        // each array member will contain "shop_list" and "address"
+    // e. client then displays the full store list in a drop down***
+        // the qr code would contain a valid copy of the store list entry the qr code is for
+        // if user scans before step c is complete store the scanned value in a buffer and then check against it when step c is done***
+    // f. client then double checks with user on store selection and sends the id of the store as "3STORE[id]" and also stores the store id***
+    // g. server sends an ACK
+    // h. client moves onto the main app***
 
 // camera module from https://github.com/jamenamcinteer/react-qr-barcode-scanner
 
-let setScannerResult: React.Dispatch<React.SetStateAction<string>> // setter for scanner result
+// let setScannerResult: React.Dispatch<React.SetStateAction<string>> // setter for scanner result
 let setScanningState: React.Dispatch<React.SetStateAction<boolean>>
 let setLoadingList: React.Dispatch<React.SetStateAction<boolean>>
 
@@ -36,26 +49,24 @@ const getDefaultFontSize = () => {
 
 const LocateStore: React.FC = () => {
 
-    const [result, setResult] = useState("");
     const [scanning, setScanning] = useState(true);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [loading, setLoading] = useState(true);
     const [windowDimensions, setWindowDimensions] = useState(getWindowDimensions());
     const [promptHeight, setPromptHeight] = useState(0);
-    const [selectedStore, setSelectedStore] = useState(-1 as number);
+    // const [selectedStore, setSelectedStore] = useState(-1 as number);
 
-    setScannerResult = setResult
+    // setScannerResult = setResult
     setScanningState = setScanning;
     setLoadingList = setLoading
     const defaultFontSize = getDefaultFontSize()
     const fullHeight = (windowDimensions.height / defaultFontSize - 4) * defaultFontSize
     const fullWidth = (windowDimensions.width / defaultFontSize - 4) * defaultFontSize
 
-    useEffect(() => {
-        if(result){
-            alert(result)
-        }
-    }, [result])
+    // useEffect(() => {
+    //     if(result){
+    //         alert(result)
+    //     }
+    // }, [result])
 
     useEffect(() => {
         function handleResize() {
@@ -95,14 +106,30 @@ const LocateStore: React.FC = () => {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
             const shopAddress: string = (list.value as Array<string>)[i]["address"]
-            output.push((<div className={"shopContainer"} onClick={() => {notify(i)}}><p className={"mainText"}>{shopName}</p><p className={"otherText"}>{shopAddress}</p></div>) as unknown as Element)
+            output.push((<div className={"shopContainer"} onClick={() => {notify(i)}}><p className={"mainText"}>{shopName}</p><p className={"otherText"}>{shopAddress}</p></div>) as unknown as HTMLElement)
         }
-        output.push((<ToastContainer autoClose={5000} onClick={() => {console.log("hi")}}/>) as unknown as Element)
-        return output
+        output.push((<ToastContainer autoClose={5000} onClick={() => {socket.send(nonce.value + "3STORE" + storeID.value)}}/>) as unknown as Element)
+        return output // 3e. displaying list
     }
 
-    const notify = (i: number) => toast((<><p>Please click on this message to confirm you are in this store:</p>
-        <br /><p>{(shopList.value as Array<string>)[i]["name" as unknown as number]}</p></>));
+    const notify = (i: number) => {
+        storeID.value = i
+        switch (i) { // the notify function outside should have done the error checking by this point
+            case -1: // if the code was not recognizes run this
+                toast.error((<><p>Invalid Code Scanned</p></>))
+                break
+            default: // normal behaviour
+                toast((<>
+                    <p>Please click on this message to confirm you are in this store:</p>
+                    <br/>
+                    <p>{(shopList.value as Array<string>)[i]["name" as unknown as number]}</p>
+                </>), {
+                    onClose: () => {
+                        setScanning(true)
+                    }
+                });
+        }
+    }; // 3f.
     
     return (
         <>
@@ -115,13 +142,28 @@ const LocateStore: React.FC = () => {
                             if (scanning) {
                                 if (value) {
                                     setScanningState(false)
-                                    resolveScan(value.getText())
+                                    while (loading) {
+                                        // do nothing
+                                    }
+                                    // pretend this is what the scanner scanned in
+                                    const scanned_value = "{\"name\":\"Piccadilly Station Store\",\"address\":\"B6/F, Piccadilly Railway Station, London Rd, Manchester M1 2PA\"}"
+                                    for (let i = 0; i < (shopList.value as Array<string>).length; i++) {
+                                        if (scanned_value == JSON.stringify((shopList.value as Array<string>)[i])) {
+                                            storeID.value = i
+                                            notify(i)
+                                            break
+                                        }
+
+                                    }
+                                    console.log("invalid value scanned:", value.getText());
+                                    // resolveScan(value.getText())
                                 } else {
+                                    // console.log("scanned nothing at " + (new Date().getTime()));
                                     // do nothing
                                 }
                             }
                         }}
-                        delay={1000} // i am guessing this is 1000 millis???
+                        delay={100} // i am guessing this is 1000 millis???
                     />
                 </div>
                 {/*<Modal opened={opened} onClose={close} title={"Please confirm the selected store"}>*/}
@@ -133,7 +175,7 @@ const LocateStore: React.FC = () => {
                         <p>Please allow camera permissions, or choose a store from the list below</p>
                     </div>
                     <div id={"listDiv"} style={ { "--prompt-height": String(promptHeight) + "px" } as React.CSSProperties }>
-                        {list(shopList)}
+                        {list(shopList) as ReactNode}
                     </div>
                 </div>
             </div>
@@ -142,23 +184,27 @@ const LocateStore: React.FC = () => {
 
 }
 
-function resolveScan(result: string){
-    setScannerResult(result)
-    setScanningState(true)
-}
+// function resolveScan(result: string){
+//     setScannerResult(result)
+//     setScanningState(true)
+// }
 
 export const store_locator_screen = (socket: WebSocket, response: string, /*screen: referenceObj,*/ nonce: referenceObj) => {
     // message handler for store locator screen
 
-    if (response.slice(0, 4) == "LIST") { // backend sends this back if either/both username and password is wrong
+    if (response == "ACK") { // 3h.
+        socket.send(nonce.value + "3NEXT" + storeID.value)
+    } else if (response.slice(0, 4) == "LIST") { // backend sends this back if either/both username and password is wrong
         response = response.slice(4, response.length)
         shopList.value = JSON.parse(response)["list"]
         setLoadingList(false) // if the server is too quick this will fail to run (almost impossible once deployed)
 
         return ""
+    } else if (response.slice(0, 4) == "NEXT") {
+        screenStateObj.value = ScreenState.Scanner
+        console.debug("moving on to main app")
+        return "4"
     }
-
-    return "4" // should not do anything, remove this later
 }
 
 export default LocateStore

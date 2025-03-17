@@ -11,21 +11,13 @@ import {
 import Start, { login_screen } from './Start'
 import SignUp, { sign_up_screen } from './Sign_up'
 import LocateStore, { store_locator_screen } from './Locate_store';
-import {nonce, screenStateObj, token, username} from "./Reference_objects.tsx";
+import {connect, nonce, screenStateObj, socket, storeID, token, username} from "./Shared_objs.tsx";
+import {MainScanner} from "../Scanner.tsx";
 
 const lastChecked = new Date()
 const StatusCheckInterval = 120000 // set it to 2 mins later (btw its in milliseconds)
 const useCloud = false
 const BackendLink = useCloud ? "wss://efrgtghyujhygrewds.ip-ddns.com:8080/" : "ws://localhost:8080/" // change the ip accordingly
-export let socket: WebSocket
-
-export function getWindowDimensions() {
-  const { innerWidth: width, innerHeight: height } = window;
-  return {
-    width,
-    height
-  };
-}
 
 function App() {
 
@@ -44,7 +36,7 @@ function App() {
             <Route path="/scanning-website/locatestore" element={<LocateStore />} />
             <Route path="/scanning-website/signup" element={<SignUp />} />
             <Route path="/scanning-website/login" element={<Start />} />
-            {/* <Route path="/profile/:userId" element={<Profile />} /> */}
+            <Route path="/scanning-website/scanner" element={<MainScanner />} />
             <Route
             // path="/dashboard"
             // element={
@@ -65,7 +57,7 @@ const BackendTalk = () => {
 
   useEffect(() => {
 
-    socket = new WebSocket(BackendLink)
+    connect(BackendLink)
     socket.onopen = () => console.debug("websocket connected")
 
     // Listen for messages
@@ -123,7 +115,7 @@ const BackendTalk = () => {
               break
             case "3":
               navigator("/scanning-website/locatestore")
-              socket.send(nonce.value + "3LIST")
+              socket.send(nonce.value + "3LIST") // 3c.
               break
           }
           break
@@ -131,7 +123,7 @@ const BackendTalk = () => {
         case "3":
           switch (store_locator_screen(socket, response, /*screenStateObj, */nonce)) {
             case "4":
-              // switch to main app
+              navigator("/scanning-website/scanner")
               break
           }
           break
@@ -179,6 +171,9 @@ const StatusCheck = () => {
       } else if (screenStateObj.value == ScreenState.StoreLocator) {
         socket.send(nonce.value + "3STATUS" + token.value + username.value)
         console.debug("sent \"" + nonce.value + "3STATUS" + token.value + username.value)
+      } else if (screenStateObj.value == ScreenState.Scanner) {
+        socket.send(nonce.value + "4STATUS" + token.value + username.value + storeID.value)
+        console.debug("sent \"" + nonce.value + "4STATUS" + token.value + username.value + storeID.value)
       }
 
       startTimer()

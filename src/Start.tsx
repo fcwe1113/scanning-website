@@ -1,7 +1,7 @@
 import React from "react";
 import { ScreenState } from "./Screen_state";
-import {socket} from "./App.tsx";
-import {nonce, referenceObj, username} from "./Reference_objects.tsx";
+import {socket} from "./Shared_objs.tsx";
+import {nonce, referenceObj, username} from "./Shared_objs.tsx";
 // import { login } from "../services/UserApi";
 
 // 1 = start screen

@@ -1,6 +1,6 @@
-import { referenceObj } from "./App"
 import { ScreenState } from "./Screen_state"
 import CircularIndeterminate from "./Loading_screen"
+import {referenceObj} from "./Shared_objs.tsx";
 
 // messages sent from both ends should follow a similar format (at least for the first few chars)
 // *** denotes client side tasks
