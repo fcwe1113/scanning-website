@@ -1,29 +1,30 @@
 import { useEffect, useRef } from 'react'
 import './App.css'
-import {ScreenState} from './Screen_state';
-import { token_exchange, Loading } from './Token_exchange';
+import {ScreenState} from './components/shared/Screen_state.tsx';
+import { Loading } from './components/pages/Token_exchange.tsx';
 import {
   BrowserRouter as Router,
   Route,
   Routes,
   useNavigate,
 } from "react-router-dom";
-import Start, { login_screen } from './Start'
-import SignUp, { sign_up_screen } from './Sign_up'
-import LocateStore, { store_locator_screen } from './Locate_store';
-import {connect, nonce, screenStateObj, socket, storeID, token, username} from "./Shared_objs.tsx";
-import {MainScanner} from "../Scanner.tsx";
+import {connect, nonce, screenStateObj, socket, storeID, token, username} from "./components/shared/Shared_objs.tsx";
+import {MainScanner} from "./components/pages/Scanner.tsx";
+import LocateStore from "./components/pages/Locate_store.tsx";
+import SignUp from "./components/pages/Sign_up.tsx";
+import Login from './components/pages/Login.tsx';
+import {token_exchange} from "./components/pages/handlers/Token_exchange_handler.tsx";
+import {login_screen} from "./components/pages/handlers/Login_handler.tsx";
+import {sign_up_screen} from "./components/pages/handlers/Sign_up_handler.tsx";
+import {store_locator_screen} from "./components/pages/handlers/Locate_store_handler.tsx";
 
-const lastChecked = new Date()
 const StatusCheckInterval = 120000 // set it to 2 mins later (btw its in milliseconds)
 const useCloud = false
 const BackendLink = useCloud ? "wss://efrgtghyujhygrewds.ip-ddns.com:8080/" : "ws://localhost:8080/" // change the ip accordingly
 
 function App() {
+  // const navigator = useNavigate()
 
-  // for the camera lib use the one demoed in kybarg.github.io/react-qr-scanner/
-
-  console.log(lastChecked)
   return (
     <>
         <Router>
@@ -35,7 +36,7 @@ function App() {
             <Route path="/scanning-website" element={<Loading />} />
             <Route path="/scanning-website/locatestore" element={<LocateStore />} />
             <Route path="/scanning-website/signup" element={<SignUp />} />
-            <Route path="/scanning-website/login" element={<Start />} />
+            <Route path="/scanning-website/login" element={<Login />} />
             <Route path="/scanning-website/scanner" element={<MainScanner />} />
             <Route
             // path="/dashboard"
@@ -54,6 +55,12 @@ function App() {
 
 const BackendTalk = () => {
   const navigator = useNavigate()
+
+  window.onbeforeunload = (event) => {
+    event.preventDefault()
+    navigator("/scanning-website/")
+    return ''
+  }
 
   useEffect(() => {
 
@@ -216,7 +223,7 @@ const InactivityLogout = () => {
     window.addEventListener("keypress", resetTimer);
     window.addEventListener("click", resetTimer);
 
-    startTimer(); // Start the inactivity timer when the component mounts
+    startTimer(); // Login the inactivity timer when the component mounts
 
     return () => {
       // Cleanup function to clear timer and remove event listeners

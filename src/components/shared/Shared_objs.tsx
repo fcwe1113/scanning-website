@@ -29,3 +29,6 @@ export function getWindowDimensions() {
         height
     };
 }
+
+export const setLoadingList = new referenceObj(null)
+export const globalSetEmailVerify = new referenceObj(null)

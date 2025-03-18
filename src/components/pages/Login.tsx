@@ -1,8 +1,6 @@
 import React from "react";
-import { ScreenState } from "./Screen_state";
-import {socket} from "./Shared_objs.tsx";
-import {nonce, referenceObj, username} from "./Shared_objs.tsx";
-// import { login } from "../services/UserApi";
+import {socket} from "../shared/Shared_objs.tsx";
+import {nonce, username} from "../shared/Shared_objs.tsx";
 
 // 1 = start screen
         // a. check items: token
@@ -23,7 +21,7 @@ import {nonce, referenceObj, username} from "./Shared_objs.tsx";
         // and server moves on to that state
         // h. client receives message and also moves on to the next state
 
-const Start: React.FC = () => {
+const Login: React.FC = () => {
 
     // note that this page is just functional, and deffo not good looking yet, but ill fix that later bc css ptsd is a real issue and more ppl should talk abt it
     return (
@@ -32,15 +30,15 @@ const Start: React.FC = () => {
             <input type="text" id="username_input" placeholder='username'></input>
             <input type="password" id="password_input" placeholder='password'></input><br />
             {/* <div id="button_div"> */}
-            <button onClick={() => Login()}>Sign in</button><br />
-            <button onClick={() => SignUp()}>Sign up</button><br />
+            <button onClick={() => LoginFunction()}>Sign in</button><br />
+            <button onClick={() => socket.send(nonce.value + "1NEXT2")}>Sign up</button><br />
             <button onClick={() => socket.send(nonce.value + "1GUEST")}>Proceed as guest</button>
         {/* </div> */}
         </>
     );
 };
 
-function Login(){
+function LoginFunction(){
 
     const usernamee = (document.getElementById("username_input") as HTMLInputElement).value
     const password = (document.getElementById("password_input") as HTMLInputElement).value
@@ -60,34 +58,4 @@ function Login(){
     }
 }
 
-export function login_screen(socket: WebSocket, response: string, screen: referenceObj, nonce: referenceObj){
-    // message handler for login screen
-    if(response == "FAIL"){ // backend sends this back if either/both username and password is wrong
-        alert("Incorrect username or password")
-        return ""
-    } else if(response == "OK"){ // if backsend sends this back that means the login was accepted
-        socket.send(nonce.value + "1NEXT3" + (document.getElementById("username_input") as HTMLInputElement).value) // this tells the backend we are moving onto the store locator
-        return ""
-    } else if(response.slice(0, 5) == "GUEST") {
-        username.value = response.slice(5, 20)
-        console.debug("guest username received: " + username.value)
-        socket.send(nonce.value + "1NEXT3" + username.value)
-        return ""
-    } else if(response.slice(0, 4) == "NEXT"){
-        if(response.slice(4, 5) == "2"){
-            screen.value = ScreenState.SignUp
-            console.debug("move to account creation")
-            return "2"
-        } else if(response.slice(4, 5) == "3"){
-            screen.value = ScreenState.StoreLocator
-            console.debug("move to store locator")
-            return "3"
-        }
-    }
-}
-
-function SignUp(){
-    socket.send(nonce.value + "1NEXT2")
-}
-
-export default Start;
+export default Login;

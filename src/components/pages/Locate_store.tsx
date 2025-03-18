@@ -1,11 +1,10 @@
 import BarcodeScannerComponent from "react-qr-barcode-scanner";
 import React, {ReactNode, useEffect, useState} from 'react';
-import {getWindowDimensions, socket} from "./Shared_objs.tsx";
-import {nonce, referenceObj, screenStateObj, shopList, storeID} from "./Shared_objs.tsx";
-import "./cameraUI.css"
-import "./index.css"
+import {getWindowDimensions, setLoadingList, socket} from "../shared/Shared_objs.tsx";
+import {nonce, referenceObj, shopList, storeID} from "../shared/Shared_objs.tsx";
+import "../../cameraUI.css"
+import "../../index.css"
 import { ToastContainer, toast } from 'react-toastify';
-import {ScreenState} from "./Screen_state.tsx";
 
 // 3 = store locator
     // a. check items: token, username
@@ -24,7 +23,6 @@ import {ScreenState} from "./Screen_state.tsx";
 
 // let setScannerResult: React.Dispatch<React.SetStateAction<string>> // setter for scanner result
 let setScanningState: React.Dispatch<React.SetStateAction<boolean>>
-let setLoadingList: React.Dispatch<React.SetStateAction<boolean>>
 
 const cameraHeight = 0.4 // in percentage ofc
 
@@ -57,7 +55,7 @@ const LocateStore: React.FC = () => {
 
     // setScannerResult = setResult
     setScanningState = setScanning;
-    setLoadingList = setLoading
+    setLoadingList.value = setLoading
     const defaultFontSize = getDefaultFontSize()
     const fullHeight = (windowDimensions.height / defaultFontSize - 4) * defaultFontSize
     const fullWidth = (windowDimensions.width / defaultFontSize - 4) * defaultFontSize
@@ -182,29 +180,6 @@ const LocateStore: React.FC = () => {
         </>
     )
 
-}
-
-// function resolveScan(result: string){
-//     setScannerResult(result)
-//     setScanningState(true)
-// }
-
-export const store_locator_screen = (socket: WebSocket, response: string, /*screen: referenceObj,*/ nonce: referenceObj) => {
-    // message handler for store locator screen
-
-    if (response == "ACK") { // 3h.
-        socket.send(nonce.value + "3NEXT" + storeID.value)
-    } else if (response.slice(0, 4) == "LIST") { // backend sends this back if either/both username and password is wrong
-        response = response.slice(4, response.length)
-        shopList.value = JSON.parse(response)["list"]
-        setLoadingList(false) // if the server is too quick this will fail to run (almost impossible once deployed)
-
-        return ""
-    } else if (response.slice(0, 4) == "NEXT") {
-        screenStateObj.value = ScreenState.Scanner
-        console.debug("moving on to main app")
-        return "4"
-    }
 }
 
 export default LocateStore
