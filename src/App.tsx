@@ -13,10 +13,11 @@ import {MainScanner} from "./components/pages/Scanner.tsx";
 import LocateStore from "./components/pages/Locate_store.tsx";
 import SignUp from "./components/pages/Sign_up.tsx";
 import Login from './components/pages/Login.tsx';
-import {token_exchange} from "./components/pages/handlers/Token_exchange_handler.tsx";
-import {login_screen} from "./components/pages/handlers/Login_handler.tsx";
-import {sign_up_screen} from "./components/pages/handlers/Sign_up_handler.tsx";
-import {store_locator_screen} from "./components/pages/handlers/Locate_store_handler.tsx";
+import {TokenExchangeHandler} from "./components/pages/handlers/Token_exchange_handler.tsx";
+import {LoginScreenHandler} from "./components/pages/handlers/Login_handler.tsx";
+import {SignUpHandler} from "./components/pages/handlers/Sign_up_handler.tsx";
+import {StoreLocatorHandler} from "./components/pages/handlers/Locate_store_handler.tsx";
+import {MainScannerHandler} from "./components/pages/handlers/Scanner_handler.tsx";
 
 const StatusCheckInterval = 120000 // set it to 2 mins later (btw its in milliseconds)
 const useCloud = false
@@ -97,7 +98,7 @@ const BackendTalk = () => {
           break
 
         case "0":
-          if (await token_exchange(socket, response, screenStateObj, token, nonce)) {
+          if (await TokenExchangeHandler(socket, response, screenStateObj, token, nonce)) {
             navigator("/scanning-website/login")
           }
           console.debug("screen state: " + screenStateObj.value)
@@ -105,7 +106,7 @@ const BackendTalk = () => {
 
         case "1":
 
-          switch (login_screen(socket, response, screenStateObj, nonce)) {
+          switch (LoginScreenHandler(socket, response, screenStateObj, nonce)) {
             case "2":
               navigator("/scanning-website/signup")
               break
@@ -116,7 +117,7 @@ const BackendTalk = () => {
           }
           break
         case "2":
-          switch (sign_up_screen(socket, response, screenStateObj, nonce)) {
+          switch (SignUpHandler(socket, response, screenStateObj, nonce)) {
             case "1":
               navigator("/scanning-website/login")
               break
@@ -128,12 +129,18 @@ const BackendTalk = () => {
           break
 
         case "3":
-          switch (store_locator_screen(socket, response, /*screenStateObj, */nonce)) {
+          switch (StoreLocatorHandler(socket, response, nonce)) {
             case "4":
               navigator("/scanning-website/scanner")
               break
           }
           break
+        case "4":
+          switch (MainScannerHandler(response)) {
+            case "5":
+              navigator("/scanning-website/payment")
+              break
+          }
       }
 
     };

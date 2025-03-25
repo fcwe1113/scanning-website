@@ -5,6 +5,7 @@ import {nonce, referenceObj, shopList, storeID} from "../shared/Shared_objs.tsx"
 import "../../cameraUI.css"
 import "../../index.css"
 import { ToastContainer, toast } from 'react-toastify';
+import {getDefaultFontSize} from "../shared/getDefaultFontSize.tsx";
 
 // 3 = store locator
     // a. check items: token, username
@@ -21,29 +22,9 @@ import { ToastContainer, toast } from 'react-toastify';
 
 // camera module from https://github.com/jamenamcinteer/react-qr-barcode-scanner
 
-// let setScannerResult: React.Dispatch<React.SetStateAction<string>> // setter for scanner result
 let setScanningState: React.Dispatch<React.SetStateAction<boolean>>
 
 const cameraHeight = 0.4 // in percentage ofc
-
-const getDefaultFontSize = () => {
-
-    const element = document.createElement('div');
-    element.style.width = '1rem';
-    element.style.display = 'none';
-    document.body.append(element);
-    const widthMatch = window
-        .getComputedStyle(element)
-        .getPropertyValue('width')
-        .match(/\d+/);
-    element.remove();
-    if (!widthMatch || widthMatch.length < 1) {
-        return 1; // if the function ever return 1 we have bigger issues
-    }
-
-    const result = Number(widthMatch[0]);
-    return !isNaN(result) ? result : 1;
-};
 
 const LocateStore: React.FC = () => {
 
@@ -51,7 +32,6 @@ const LocateStore: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [windowDimensions, setWindowDimensions] = useState(getWindowDimensions());
     const [promptHeight, setPromptHeight] = useState(0);
-    // const [selectedStore, setSelectedStore] = useState(-1 as number);
 
     // setScannerResult = setResult
     setScanningState = setScanning;

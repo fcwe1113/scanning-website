@@ -26,6 +26,7 @@
     max-height: calc(var(--content-height) - var(--prompt-height));
     overflow-y: scroll;
     border-top: #6e8f71 2px solid;
+    border-bottom: #6e8f71 2px solid;
 }
 
 .shopContainer {
@@ -41,6 +42,72 @@
     font-size: 10px;
 }
 
-BarcodeScannerComponent {
+.warningText {
+    font-size: 10px;
+    color: #fff451;
+}
 
+.itemContainer {
+    display: grid;
+    grid-template-areas: "desc" "buttons";
+    grid-template-columns: 1fr min-content;
+    border-bottom: #6e8f71 2px solid;
+}
+
+.itemButtonContainer {
+    display: flex;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    padding-right: 0.5rem;
+    align-items: center;
+}
+
+.itemTextContainer {
+    text-align: left;
+}
+
+.listBtn {
+    margin: 0;
+    padding: 0.2rem 0.6rem;
+}
+
+.quantityText {
+    padding-left: 0.5rem;
+}
+
+#inputDiv {
+    display: grid;
+    grid-template-areas: "id" "quantity" "button";
+    grid-template-columns: 1fr 1fr min-content;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+
+#inputButton, #checkoutButton {
+    margin: 0;
+    font-size: 0.8rem;
+    padding: 0.7rem;
+}
+
+#item_input, #quantity_input {
+    padding: 6px 10px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+#listContainer {
+    display: grid;
+    grid-template-areas: "list" "checkout";
+    grid-template-rows: 1fr min-content;
+}
+
+#checkoutDiv {
+    display: grid;
+    grid-template-areas: "amount" "button";
+    grid-template-columns: 1fr min-content;
+    text-align: left;
+    padding-top: 0.5rem;
 }

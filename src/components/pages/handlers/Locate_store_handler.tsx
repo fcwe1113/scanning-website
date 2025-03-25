@@ -2,7 +2,7 @@ import {referenceObj, screenStateObj, setLoadingList, shopList, storeID} from ".
 import {ScreenState} from "../../shared/Screen_state.tsx";
 import React from "react";
 
-export const store_locator_screen = (socket: WebSocket, response: string, /*screen: referenceObj,*/ nonce: referenceObj) => {
+export const StoreLocatorHandler = (socket: WebSocket, response: string, /*screen: referenceObj,*/ nonce: referenceObj) => {
     // message handler for store locator screen
 
     if (response == "ACK") { // 3h.

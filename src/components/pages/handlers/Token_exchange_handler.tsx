@@ -1,7 +1,7 @@
 import {referenceObj} from "../../shared/Shared_objs.tsx";
 import {ScreenState} from "../../shared/Screen_state.tsx";
 
-export const token_exchange = async (
+export const TokenExchangeHandler = async (
     socket: WebSocket,
     response: string,
     screen: referenceObj,

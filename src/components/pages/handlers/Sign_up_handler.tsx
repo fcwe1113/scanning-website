@@ -2,7 +2,7 @@ import {globalSetEmailVerify, referenceObj, username} from "../../shared/Shared_
 import {ScreenState} from "../../shared/Screen_state.tsx";
 import React from "react";
 
-export const sign_up_screen = (socket: WebSocket, response: string, screen: referenceObj, nonce: referenceObj) => {
+export const SignUpHandler = (socket: WebSocket, response: string, screen: referenceObj, nonce: referenceObj) => {
     // message handler for sign up screen
     if(response == "BADNAME"){ // backend sends this back if either/both username and password is wrong
         alert("username in use")

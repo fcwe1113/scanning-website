@@ -1,7 +1,7 @@
 import {referenceObj, username} from "../../shared/Shared_objs.tsx";
 import {ScreenState} from "../../shared/Screen_state.tsx";
 
-export function login_screen(socket: WebSocket, response: string, screen: referenceObj, nonce: referenceObj){
+export function LoginScreenHandler(socket: WebSocket, response: string, screen: referenceObj, nonce: referenceObj){
     // message handler for login screen
     if(response == "FAIL"){ // backend sends this back if either/both username and password is wrong
         alert("Incorrect username or password")
