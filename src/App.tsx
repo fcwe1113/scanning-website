@@ -136,7 +136,7 @@ const BackendTalk = () => {
           }
           break
         case "4":
-          switch (MainScannerHandler(response)) {
+          switch (MainScannerHandler(response, screenStateObj)) {
             case "5":
               navigator("/scanning-website/payment")
               break

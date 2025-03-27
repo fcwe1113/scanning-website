@@ -1,6 +1,7 @@
 import React, {ReactNode, useEffect, useState} from "react";
 import BarcodeScannerComponent from "react-qr-barcode-scanner";
 import {
+    checkoutTotal,
     getGlobalShoppingList,
     getWindowDimensions,
     Item,
@@ -90,29 +91,25 @@ export const MainScanner: React.FC = () => {
         "--content-height": String(fullHeight * (1 - cameraHeight)) + "px",
     } as React.CSSProperties
 
-    scanningNotify.value = (name: string, quantity?: number) => { // todo
+    scanningNotify.value = (name: string, quantity?: number) => {
         console.log("notify " + name)
         switch (String(name)) { // the notify function outside should have done the error checking by this point
             case "-1": // if the code was not recognizes run this
                 if (scanning) {
-                    setScanning(false);
+                    setScanning(false)
                     toast.error("Invalid barcode entered", {
                         onClose: () => {
                             setScanning(true)
                         }
                     })
                 } else {
-                    toast.error("Invalid barcode scanned", {
-                        onClose: () => {
-                            setScanning(true)
-                        }
-                    })
+                    toast.error("Invalid barcode scanned")
                 }
                 break
             case "-2": // if the code is recognized but quantity invalid run this
                 if (scanning) {
-                    setScanning(false);
-                    toast.error("Invalid barcode scanned", {
+                    setScanning(false)
+                    toast.error("Invalid barcode entered", {
                         onClose: () => {
                             setScanning(true)
                         }
@@ -141,10 +138,21 @@ export const MainScanner: React.FC = () => {
         return Number(output.toFixed(2))
     }
 
+    const checkout = () => {
+        if (shoppingList.length != 0) {
+            // if the list is empty dont actually send anything
+            // yes a list of quantity 0 items could be sent tho it just wastes bandwidth and thats it
+            socket.send(nonce.value + "4CHECKOUT" + "{\"list\": " + JSON.stringify(shoppingList) + ", \"total\": " + getTotalCost() + "}")
+            console.debug("sent checkout list")
+            checkoutTotal.value = getTotalCost()
+        }
+    }
+
     return (
         <>
             <div id={"cameraUIWrapper"} style={cameraUIvars}>
                 <div id={"cameraDiv"}>
+                    {/* 4c. barcode scanner */}
                     <BarcodeScannerComponent
                         width={fullWidth}
                         height={fullHeight * cameraHeight}
@@ -152,16 +160,18 @@ export const MainScanner: React.FC = () => {
                             if (scanning) {
                                 if (value) {
                                     setScanningState(false)
-                                    // pretend this is what the scanner scanned in
-                                    const scanned_value = "1 0.4" // todo format
-                                    const scanned_value_array = scanned_value.split(" ")
-                                    if (scanned_value_array.length == 2) {
-                                        tempQuantity.value = scanned_value_array[1] as unknown as number
+                                    // the barcodes will be in a fixed format of [id][space][quantity] with quantity being optional
+                                    // e.g. 1 0.42
+                                    const scanned_value_array = value.getText().split(" ")
+                                    if (scanned_value_array.length == 0) {
+                                        // do nothing for now?
+                                    } else {
+                                        if (scanned_value_array.length == 2) {
+                                            tempQuantity.value = scanned_value_array[1] as unknown as number
+                                        }
+                                        socket.send(nonce.value + "4ITEM" + scanned_value_array[0]) // 4c. sending id to backend
                                     }
-                                    socket.send(nonce.value + "4ITEM" + scanned_value_array[0])
-                                    // resolveScan(value.getText())
                                 } else {
-                                    // console.log("scanned nothing at " + (new Date().getTime()));
                                     // do nothing
                                 }
                             }
@@ -192,7 +202,8 @@ export const MainScanner: React.FC = () => {
                         </div>
                         <div id={"checkoutDiv"}>
                             <p>{"Total price: £" + getTotalCost()}</p>
-                            <button id={"checkoutButton"}>Checkout</button>
+                            {/* 4e. below */}
+                            <button id={"checkoutButton"} onClick={checkout}>Checkout</button>
                         </div>
                     </div>
                 </div>

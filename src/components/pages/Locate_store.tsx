@@ -123,13 +123,16 @@ const LocateStore: React.FC = () => {
                                     while (loading) {
                                         // do nothing
                                     }
-                                    // pretend this is what the scanner scanned in
-                                    const scanned_value = "{\"name\":\"Piccadilly Station Store\",\"address\":\"B6/F, Piccadilly Railway Station, London Rd, Manchester M1 2PA\"}"
+                                    // the scanned value would be a json
+                                    // const scanned_value = "{\"name\":\"Piccadilly Station Store\",\"address\":\"B6/F, Piccadilly Railway Station, London Rd, Manchester M1 2PA\"}"
+                                    const scanned_value = value.getText()
                                     for (let i = 0; i < (shopList.value as Array<string>).length; i++) {
                                         if (scanned_value == JSON.stringify((shopList.value as Array<string>)[i])) {
                                             storeID.value = i
                                             notify(i)
                                             break
+                                        } else { // todo actually try proccing this
+                                            notify(-1)
                                         }
 
                                     }

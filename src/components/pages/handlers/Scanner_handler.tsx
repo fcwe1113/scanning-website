@@ -1,12 +1,27 @@
 import {
+    checkoutTotal,
     getGlobalShoppingList,
-    Item, scannerReload,
-    scanningNotify,
+    Item, nonce, referenceObj, scannerReload,
+    scanningNotify, socket,
     tempQuantity
 } from "../../shared/Shared_objs.tsx";
+import {ScreenState} from "../../shared/Screen_state.tsx";
 
-export const MainScannerHandler = (response: string) => {
-    if (response.slice(0, 4) === "ITEM") {
+// 4 = main_app
+    // a. check items: token, username, storeid
+    // b. do regular status checks until user checkout***
+    // c. user is free to scan/type in random barcodes and everytime they do that id gets sent up to the server appended with "4ITEM"***
+        // note the id is a positive integer to both ends will need to sanitize it before sending it to server/querying the db with it
+        // I. server would look at the id and ping back the item name, price and minimum age in a json in the format of "4ITEM[json]"
+            // if the id given is invalid the server would ping "4INVALID"
+            // note the server WILL NOT be keeping track of the shopping list in this stage
+    // d. client takes in the json and display the item on a list on screen***
+    // e. when user clicks the checkout button client sends the entire list of items as a json with quantity up to server like "4CHECKOUT[json]"***
+    // f. server sends an ACK
+    // g. move on to payment
+
+export const MainScannerHandler = (response: string, screen: referenceObj) => {
+    if (response.slice(0, 4) === "ITEM") { // 4e.
         let error = false
         response = JSON.parse(response.slice(4, response.length))
         console.log(response)
@@ -55,10 +70,17 @@ export const MainScannerHandler = (response: string) => {
         }
 
         return ""
-    } else if (response.slice(0, 7) == "INVALID") {
+    } else if (response == "INVALID") {
         (scanningNotify.value as (name: string) => object)("-1")
         return ""
+    } else if (response == "ACK") {
+        socket.send(nonce.value + "4NEXT" + checkoutTotal.value)
+        console.debug("sent 4NEXT")
+    } else if (response == "NEXT") { // 4g.
+        screen.value = ScreenState.StoreLocator
+        console.debug("move to store locator")
+        return "5"
     }
 
-    return "5" // should not happen
+    return "" // should not happen
 }
