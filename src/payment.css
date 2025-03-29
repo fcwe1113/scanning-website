@@ -1,0 +1,63 @@
+#checkoutUIContainer {
+
+    --UI-height: 1;
+
+    display: grid;
+    grid-template-rows: calc(var(--UI-height) / 2 - 3rem) fit-content(3rem) fit-content(calc(var(--UI-height) / 2));
+    grid-template-areas: "list" "total" "checkout";
+}
+
+#listContainer {
+    grid-area: list;
+    border-top: #6e8f71 solid 1px;
+    text-align: left;
+    overflow-y: scroll;
+}
+
+#checkoutContainer {
+    grid-area: checkout;
+    border-top: #6e8f71 solid 1px;
+}
+
+.checkoutContainer {
+    border-bottom: #6e8f71 solid 1px;
+}
+
+#apple_googlePayContainer {
+    display: grid;
+    grid-template-columns: 50% 50%;
+    padding: 1rem 0;
+}
+
+button {
+    margin: 0 1rem;
+    padding: 0.3rem;
+}
+
+#cardPay {
+    margin: 0;
+    width: 100%;
+}
+
+input {
+    padding: 12px 20px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.paymentContainer {
+    padding: 0.5rem 0;
+}
+
+#transfer {
+    margin: 1rem 0;
+    width: 100%;
+}
+
+#total {
+    border-top: #6e8f71 solid 1px;
+    margin: 0;
+}

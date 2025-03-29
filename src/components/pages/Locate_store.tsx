@@ -86,7 +86,7 @@ const LocateStore: React.FC = () => {
             const shopAddress: string = (list.value as Array<string>)[i]["address"]
             output.push((<div className={"shopContainer"} onClick={() => {notify(i)}}><p className={"mainText"}>{shopName}</p><p className={"otherText"}>{shopAddress}</p></div>) as unknown as HTMLElement)
         }
-        output.push((<ToastContainer autoClose={5000} onClick={() => {socket.send(nonce.value + "3STORE" + storeID.value)}}/>) as unknown as Element)
+        output.push((<ToastContainer autoClose={5000} onClick={() => {if (storeID.value != -1) {socket.send(nonce.value + "3STORE" + storeID.value)}}}/>) as unknown as Element)
         return output // 3e. displaying list
     }
 
@@ -94,7 +94,11 @@ const LocateStore: React.FC = () => {
         storeID.value = i
         switch (i) { // the notify function outside should have done the error checking by this point
             case -1: // if the code was not recognizes run this
-                toast.error((<><p>Invalid Code Scanned</p></>))
+                toast.error((<><p>Invalid Code Scanned</p></>), {
+                    onClose: () => {
+                        setScanning(true)
+                    }
+                })
                 break
             default: // normal behaviour
                 toast((<>
@@ -103,6 +107,7 @@ const LocateStore: React.FC = () => {
                     <p>{(shopList.value as Array<string>)[i]["name" as unknown as number]}</p>
                 </>), {
                     onClose: () => {
+                        storeID.value = -1
                         setScanning(true)
                     }
                 });
@@ -124,19 +129,25 @@ const LocateStore: React.FC = () => {
                                         // do nothing
                                     }
                                     // the scanned value would be a json
-                                    // const scanned_value = "{\"name\":\"Piccadilly Station Store\",\"address\":\"B6/F, Piccadilly Railway Station, London Rd, Manchester M1 2PA\"}"
+                                    // const scanned_value = "{\"name\":\"Manchester Piccadilly Station Store\",\"address\":\"B6/F, Piccadilly Railway Station, London Rd, Manchester M1 2PA\"}"
+                                    setScanning(false)
+                                    let found = false;
                                     const scanned_value = value.getText()
                                     for (let i = 0; i < (shopList.value as Array<string>).length; i++) {
                                         if (scanned_value == JSON.stringify((shopList.value as Array<string>)[i])) {
                                             storeID.value = i
+                                            found = true;
                                             notify(i)
                                             break
-                                        } else { // todo actually try proccing this
-                                            notify(-1)
                                         }
 
                                     }
-                                    console.log("invalid value scanned:", value.getText());
+
+                                    if (!found) {
+                                        notify(-1)
+                                        // toast.error("value scanned: " + value.getText())
+                                        console.log("invalid value scanned:", value.getText());
+                                    }
                                     // resolveScan(value.getText())
                                 } else {
                                     // console.log("scanned nothing at " + (new Date().getTime()));
@@ -144,7 +155,7 @@ const LocateStore: React.FC = () => {
                                 }
                             }
                         }}
-                        delay={100} // i am guessing this is 1000 millis???
+                        delay={1000} // i am guessing this is 1000 millis???
                     />
                 </div>
                 {/*<Modal opened={opened} onClose={close} title={"Please confirm the selected store"}>*/}

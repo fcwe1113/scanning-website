@@ -1,6 +1,7 @@
 import React from "react";
 import {socket} from "../shared/Shared_objs.tsx";
 import {nonce, username} from "../shared/Shared_objs.tsx";
+import "../../main.css"
 
 // 1 = start screen
         // a. check items: token

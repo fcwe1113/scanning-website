@@ -77,8 +77,8 @@ export const MainScannerHandler = (response: string, screen: referenceObj) => {
         socket.send(nonce.value + "4NEXT" + checkoutTotal.value)
         console.debug("sent 4NEXT")
     } else if (response == "NEXT") { // 4g.
-        screen.value = ScreenState.StoreLocator
-        console.debug("move to store locator")
+        screen.value = ScreenState.Payment
+        console.debug("move to payment")
         return "5"
     }
 

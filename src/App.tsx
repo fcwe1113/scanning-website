@@ -8,7 +8,16 @@ import {
   Routes,
   useNavigate,
 } from "react-router-dom";
-import {connect, nonce, screenStateObj, socket, storeID, token, username} from "./components/shared/Shared_objs.tsx";
+import {
+  checkoutTotal,
+  connect,
+  nonce,
+  screenStateObj,
+  socket,
+  storeID,
+  token,
+  username
+} from "./components/shared/Shared_objs.tsx";
 import {MainScanner} from "./components/pages/Scanner.tsx";
 import LocateStore from "./components/pages/Locate_store.tsx";
 import SignUp from "./components/pages/Sign_up.tsx";
@@ -18,6 +27,8 @@ import {LoginScreenHandler} from "./components/pages/handlers/Login_handler.tsx"
 import {SignUpHandler} from "./components/pages/handlers/Sign_up_handler.tsx";
 import {StoreLocatorHandler} from "./components/pages/handlers/Locate_store_handler.tsx";
 import {MainScannerHandler} from "./components/pages/handlers/Scanner_handler.tsx";
+import {Payment} from "./components/pages/Payment.tsx";
+import {PaymentHandler} from "./components/pages/handlers/Payment_handler.tsx";
 
 const StatusCheckInterval = 120000 // set it to 2 mins later (btw its in milliseconds)
 const useCloud = false
@@ -39,6 +50,7 @@ function App() {
             <Route path="/scanning-website/signup" element={<SignUp />} />
             <Route path="/scanning-website/login" element={<Login />} />
             <Route path="/scanning-website/scanner" element={<MainScanner />} />
+            <Route path="/scanning-website/payment" element={<Payment />} />
             <Route
             // path="/dashboard"
             // element={
@@ -141,6 +153,9 @@ const BackendTalk = () => {
               navigator("/scanning-website/payment")
               break
           }
+          break
+        case "5":
+          PaymentHandler(response)
       }
 
     };
@@ -188,6 +203,9 @@ const StatusCheck = () => {
       } else if (screenStateObj.value == ScreenState.Scanner) {
         socket.send(nonce.value + "4STATUS" + token.value + username.value + storeID.value)
         console.debug("sent \"" + nonce.value + "4STATUS" + token.value + username.value + storeID.value)
+      } else if (screenStateObj.value == ScreenState.Payment) {
+        socket.send(nonce.value + "5STATUS" + token.value + username.value + storeID.value + checkoutTotal.value)
+        console.debug("sent \"" + nonce.value + "5STATUS" + token.value + username.value + storeID.value + checkoutTotal.value)
       }
 
       startTimer()

@@ -13,6 +13,7 @@ import {
 } from "../shared/Shared_objs.tsx";
 import {getDefaultFontSize} from "../shared/getDefaultFontSize.tsx";
 import {toast, ToastContainer} from "react-toastify";
+import "../../cameraUI.css"
 
 let setScanningState: React.Dispatch<React.SetStateAction<boolean>>
 
@@ -158,8 +159,8 @@ export const MainScanner: React.FC = () => {
                         height={fullHeight * cameraHeight}
                         onUpdate={(_err: unknown, value) => { // this will run pretty much constantly as even when there isnt a code scanned it will run
                             if (scanning) {
+                                setScanningState(false)
                                 if (value) {
-                                    setScanningState(false)
                                     // the barcodes will be in a fixed format of [id][space][quantity] with quantity being optional
                                     // e.g. 1 0.42
                                     const scanned_value_array = value.getText().split(" ")
@@ -167,16 +168,17 @@ export const MainScanner: React.FC = () => {
                                         // do nothing for now?
                                     } else {
                                         if (scanned_value_array.length == 2) {
-                                            tempQuantity.value = scanned_value_array[1] as unknown as number
+                                            tempQuantity.value = Number(scanned_value_array[1])
                                         }
                                         socket.send(nonce.value + "4ITEM" + scanned_value_array[0]) // 4c. sending id to backend
+                                        setScanning(false)
                                     }
                                 } else {
-                                    // do nothing
+                                    setScanningState(true)
                                 }
                             }
                         }}
-                        delay={100} // in millis
+                        delay={2000} // in millis
                     />
                 </div>
                 <div id={"contentDiv"}>
