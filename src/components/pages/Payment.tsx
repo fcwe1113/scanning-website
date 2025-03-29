@@ -3,19 +3,22 @@ import {
     getGlobalShoppingList,
     getWindowDimensions,
     Item, nonce,
-    screenStateObj, setPaymentSuccess, socket, toastPaymentError
+    screenStateObj, setPaymentSuccess, setPaymentTransfer, socket, toastPaymentError
 } from "../shared/Shared_objs.tsx";
 import {toast, ToastContainer} from "react-toastify";
 import React, {ReactNode, useEffect, useState} from "react";
 import "../../payment.css"
 import {ScreenState} from "../shared/Screen_state.tsx";
+import BarcodeScannerComponent from "react-qr-barcode-scanner";
 
 export const Payment = () => {
 
     const [windowDimensions, setWindowDimensions] = useState(getWindowDimensions());
     const [success, setSuccess] = useState<boolean>(false);
+    const [transferred, setTransferred] = useState<boolean>(false);
 
     setPaymentSuccess.value = setSuccess;
+    setPaymentTransfer.value = setTransferred;
     toastPaymentError.value = (msg: string) => {
         toast.error(msg)
     }
@@ -31,7 +34,7 @@ export const Payment = () => {
 
     useEffect(() => {
 
-    }, [success]);
+    }, [success, transferred]);
 
     const paymentUIvars = {
         "--UI-height": String(windowDimensions.height - 30) + "px",
@@ -65,12 +68,12 @@ export const Payment = () => {
 
     }
 
-    return success ? (
+    return success && !transferred ? (
         <>
             <h1>Payment Successful</h1>
             <p>Thanks for shopping with us</p>
         </>
-    ) : (
+    ) : !success && !transferred ? (
         <>
             <div id={"checkoutUIContainer"} style={paymentUIvars}>
                 <div id={"listContainer"}>
@@ -95,6 +98,27 @@ export const Payment = () => {
                 </div>
             </div>
             <ToastContainer autoClose={5000}/>
+        </>
+    ) : !success && transferred ? (
+        <>
+            <h1>Transfer to till</h1>
+            <p>Please scan the qr code shown on the till screen</p>
+            <BarcodeScannerComponent
+                width={windowDimensions.width}
+                height={windowDimensions.height * 0.4}
+                onUpdate={(_err: unknown, value) => { // this will run pretty much constantly as even when there isnt a code scanned it will run
+                    if (value) {
+                        socket.send(nonce.value + "5TRANSFER" + value.getText()) // 4c. sending id to backend
+                    }
+                }}
+                delay={2000} // in millis
+            />
+            <ToastContainer autoClose={5000}/>
+        </>
+    ) : (
+        <>
+            <h1>Payment transferred to till</h1>
+            <p>Please continue your payment according to instructions from the till</p>
         </>
     )
 }
