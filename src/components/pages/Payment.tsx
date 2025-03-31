@@ -104,8 +104,8 @@ export const Payment = () => {
     function cardPay(){
         if (sanitise() == "") {
             socket.send(nonce.value +
-                "5CARD{\"card_num\":\"" + (document.getElementById("cardNumber") as HTMLInputElement).value +
-                "\",\"expiry_date\":\"" + (document.getElementById("expiryDate") as HTMLInputElement).value +
+                "5CARD{\"number\":\"" + (document.getElementById("cardNumber") as HTMLInputElement).value +
+                "\",\"expiry\":\"" + (document.getElementById("expiryDate") as HTMLInputElement).value +
                 "\",\"cvv\":\"" + (document.getElementById("cvv") as HTMLInputElement).value + "\"}");
             console.debug("sent card details")
         } else {

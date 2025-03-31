@@ -151,6 +151,7 @@ const BackendTalk = () => {
           switch (MainScannerHandler(response, screenStateObj)) {
             case "5":
               navigator("/scanning-website/payment")
+              socket.send(nonce.value + "5CARDREC")
               break
           }
           break
