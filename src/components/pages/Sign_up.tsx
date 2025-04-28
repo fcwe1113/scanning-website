@@ -37,7 +37,7 @@ const SignUp: React.FC = () => {
         <input type="password" id="password_confirm" placeholder='confirm password'></input><br />
         <input type="text" id="first_name_input" placeholder='first name'></input><br />
         <input type="text" id="last_name_input" placeholder='last name'></input><br />
-        <input type="text" id="dob_input" placeholder='dob'></input><br /> {/* in yyyy-mm-dd bc of rusqlite */}
+        <input type="text" id="dob_input" placeholder='dob: YYYY-MM-DD'></input><br /> {/* in yyyy-mm-dd bc of rusqlite */}
         <input type="text" id="email_input" placeholder='email'></input><br /> {/* must contain @, will receive a "registration email" with a code to check validity */}
         <input type="text" id="email_confirm" placeholder='confirm email'></input><br />
         {/* <div id="button_div"> */}

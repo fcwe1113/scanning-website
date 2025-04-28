@@ -24,8 +24,6 @@ export class Item {
         this.divisible = divisible
         this.quantity = quantity
     }
-
-
 }
 
 export const screenStateObj: referenceObj = new referenceObj(ScreenState.Loading)

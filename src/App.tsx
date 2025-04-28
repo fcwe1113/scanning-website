@@ -31,7 +31,7 @@ import {Payment} from "./components/pages/Payment.tsx";
 import {PaymentHandler} from "./components/pages/handlers/Payment_handler.tsx";
 
 const StatusCheckInterval = 120000 // set it to 2 mins later (btw its in milliseconds)
-const useCloud = false
+const useCloud = true
 const BackendLink = useCloud ? "wss://efrgtghyujhygrewds.ip-ddns.com:8080/" : "ws://localhost:8080/" // change the ip accordingly
 
 function App() {
@@ -190,11 +190,9 @@ const StatusCheck = () => {
 
       // normally i would split all the different status checks into their own file/function of the relevant screenStateObj
       // but since we need to use the same timer so i dont want to make multiple timers just to status check
-      // so they are all aggregated here, which is fine as no reply from the server should be sent anyways so no need to handle that
+      // so they are all aggregated here
 
-      // console.log(screenStateObj.value)
       if (screenStateObj.value == ScreenState.Start || screenStateObj.value == ScreenState.SignUp) { // 2b.
-        //start screen check items: token
         socket.send(nonce.value + (screenStateObj.value == ScreenState.Start ? "1" : "2") + "STATUS" + token.value)
         console.debug("sent \"" + nonce.value + (screenStateObj.value == ScreenState.Start ? "1" : "2") + "STATUS" + token.value)
 
