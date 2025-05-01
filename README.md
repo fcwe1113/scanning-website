@@ -1,50 +1,34 @@
-# React + TypeScript + Vite
+# Scanning website
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is my the frontend of my thesis project, which is a supermarket barcode/QR code scanner designed to better shopping experiences. This is intended to be paired with the backend, which is also available at https://github.com/fcwe1113/scanning-website-backend
 
-Currently, two official plugins are available:
+# How To Run
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## WARNING: This frontend will not function without the backend running alongside with it, details of running the backend is in the backend repo at: https://github.com/fcwe1113/scanning-website-backend
 
-## Expanding the ESLint configuration
+## List of dependencies:
+react
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+react-router-dom
 
-- Configure the top-level `parserOptions` property like this:
+@mui/material/CircularProgress
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+@mui/material/Box
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+react-toastify
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+react-qr-barcode-scanner
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+## Step by step setup
+
+1. ensure you have npm installed, if not download it from here: https://nodejs.org/en/download/
+2. ensure you have all the above dependencies installed, if not run the command ``` npm i package1 package2 ``` adding each package with their names separated with a whitespace, for example if you are running it on a fresh npm install the command would be ``` npm i react react-router-dom @mui/material/CircularProgress @mui/material/Box react-toastify react-qr-barcode-scanner ```
+3. clone this repository into your chosen destination, or get Github Desktop (https://desktop.github.com/download/) to do it for you
+4. if you hosted your backend then you most like have to change the URL of the backend then frontend is trying to connect to, you can do it in App.tsx in line 35, change the one that DOES NOT say localhost into your URL. Please note the backend server must have valid TLS certificates or the frontend will refuse to connect to it
+5. navigate in a command prompt to where you cloned the repository into and run ``` npm run dev ```
+6. npm should give you a localhost URL where you can then access the running page
+7. assuming the backend is also running on your machine it should work properly
+
+# Local only mode
+
+As this site is built for mobile devices running it in localhost only mode is missing the point, but if you still choose to do so, just change the useCloud variable on line 34 of App.tsx to false and then tell npm to run it, assuming the backend is properly configured it should be able to run on localhost
