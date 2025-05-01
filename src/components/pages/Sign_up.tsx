@@ -161,6 +161,4 @@ function Cancel(){
     socket.send(nonce.value + "2NEXT1")
 }
 
-
-
 export default SignUp;
