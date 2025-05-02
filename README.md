@@ -20,6 +20,7 @@ react-toastify
 react-qr-barcode-scanner
 
 ## Step by step setup
+It is highly recommended you host the site properly with a web server like apache, however if you want to run it on your computer directly:
 
 1. ensure you have npm installed, if not download it from here: https://nodejs.org/en/download/
 2. ensure you have all the above dependencies installed, if not run the command ``` npm i package1 package2 ``` adding each package with their names separated with a whitespace, for example if you are running it on a fresh npm install the command would be ``` npm i react react-router-dom @mui/material/CircularProgress @mui/material/Box react-toastify react-qr-barcode-scanner ```
